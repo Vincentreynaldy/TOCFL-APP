@@ -3,314 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOCFL Flashcard + Speaking & Kanvas</title>
+    <title>TOCFL Pro: Flashcard & Speaking</title>
     <style>
+        /* CSS Variables untuk Dark Mode */
+        :root {
+            --bg-color: #f4f4f9;
+            --text-color: #222;
+            --card-bg: white;
+            --card-back: #e3f2fd;
+            --container-bg: #e9ecef;
+            --border-color: #ccc;
+        }
+
+        .dark-mode {
+            --bg-color: #121212;
+            --text-color: #f4f4f9;
+            --card-bg: #2d2d2d;
+            --card-back: #1a365d;
+            --container-bg: #1e1e1e;
+            --border-color: #444;
+        }
+
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #f4f4f9;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
+            transition: background 0.3s, color 0.3s;
         }
 
-        .app-container {
-            max-width: 400px;
-            margin: auto;
+        .app-container { max-width: 400px; margin: auto; }
+
+        /* Header & Dark Mode Toggle */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .header h2 { margin: 0; font-size: 1.2rem; }
+        .theme-toggle { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-color); }
+
+        /* Statistik Panel */
+        .stats-panel {
+            background: var(--container-bg); padding: 10px; border-radius: 8px;
+            display: flex; justify-content: space-around; font-size: 0.85rem; margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stats-panel span { font-weight: bold; color: #007bff; }
+
+        /* Upload & Filter */
+        .control-panel {
+            background: var(--container-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px;
+        }
+        .control-panel select, .control-panel input[type="file"] {
+            width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 10px; border-radius: 4px;
         }
 
-        /* Area Upload CSV */
-        .upload-container {
-            margin-bottom: 20px; 
-            padding: 15px; 
-            background: #e9ecef; 
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        /* Timer Ujian */
+        .timer-container {
+            font-size: 1.2rem; font-weight: bold; color: #dc3545; margin: 10px 0;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
         }
-
-        .upload-container p { margin: 0 0 10px 0; font-size: 0.9rem; color: #555; }
-        .reset-btn { background-color: #6c757d; font-size: 0.8rem; padding: 5px 10px; margin-top: 10px; }
-        .reset-btn:hover { background-color: #5a6268; }
 
         /* Flashcard */
         .flashcard {
-            width: 300px;
-            height: 200px;
-            perspective: 1000px;
-            cursor: pointer;
-            margin: 10px auto;
-            position: relative;
+            width: 300px; height: 200px; perspective: 1000px; cursor: pointer; margin: 10px auto; position: relative;
         }
-
         .front, .back {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            backface-visibility: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border: 2px solid #ccc;
-            border-radius: 12px;
-            transition: transform 0.6s ease-in-out;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border: 2px solid var(--border-color); border-radius: 12px;
+            transition: transform 0.6s; background-color: var(--card-bg); box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-
-        .back { transform: rotateY(180deg); background-color: #e3f2fd; }
+        .back { transform: rotateY(180deg); background-color: var(--card-back); }
         .flashcard.flipped .front { transform: rotateY(180deg); }
         .flashcard.flipped .back { transform: rotateY(360deg); }
 
-        #hanzi-text { font-size: 3.5rem; margin: 0; color: #222; }
-        .hint { font-size: 0.8rem; color: #888; margin-top: 10px; }
+        #hanzi-text { font-size: 3.5rem; margin: 0; }
+        .hint { font-size: 0.8rem; color: #888; }
 
-        /* Tombol & Navigasi */
-        button {
-            padding: 10px 15px;
-            margin: 5px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover { background-color: #0056b3; }
+        /* Tombol Anki (SRS) */
+        .srs-controls { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+        .btn-srs { padding: 10px; flex: 1; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; }
+        .btn-hard { background-color: #dc3545; } /* Merah */
+        .btn-good { background-color: #ffc107; color: #222; } /* Kuning */
+        .btn-easy { background-color: #28a745; } /* Hijau */
 
-        /* Area Speaking (Fitur Baru) */
-        .speaking-container {
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px auto;
-            width: 90%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
+        /* Audio & Mic */
+        .speech-controls { background: var(--container-bg); padding: 15px; border-radius: 8px; margin: 15px auto; }
+        button { padding: 8px 12px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; }
+        .btn-mic.recording { background-color: #dc3545; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        .btn-audio { background-color: #17a2b8; width: 45%; }
-        .btn-mic { background-color: #fd7e14; width: 45%; }
-        
-        #speech-result {
-            margin-top: 10px;
-            font-size: 0.95rem;
-            color: #333;
-            min-height: 40px;
-        }
-
-        .score-high { color: green; font-weight: bold; font-size: 1.2rem; }
-        .score-med { color: orange; font-weight: bold; font-size: 1.2rem; }
-        .score-low { color: red; font-weight: bold; font-size: 1.2rem; }
-
-        hr { margin: 25px 0; border: 0; border-top: 1px solid #ddd; }
-
-        /* Tampilan Kanvas */
-        canvas {
-            border: 2px dashed #999;
-            background-color: white;
-            border-radius: 8px;
-            touch-action: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        /* Canvas */
+        canvas { border: 2px dashed var(--border-color); background-color: var(--card-bg); border-radius: 8px; touch-action: none; }
+        hr { border: 0; border-top: 1px solid var(--border-color); margin: 20px 0; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         
-        <div class="upload-container">
-            <p><strong>Upload Kosakata Baru (.csv)</strong><br>Format: <em>Hanzi, Pinyin, Arti</em></p>
+        <!-- Header -->
+        <div class="header">
+            <h2>TOCFL B1 Pro</h2>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </div>
+
+        <!-- Statistik Harian -->
+        <div class="stats-panel">
+            <div>Diproses: <span id="stat-cards">0</span></div>
+            <div>Akurasi Suara: <span id="stat-acc">0%</span></div>
+        </div>
+
+        <!-- Panel Kontrol (Upload & Filter) -->
+        <div class="control-panel">
+            <label style="font-size: 0.85rem;">1. Upload CSV (Hanzi, Pinyin, Arti, Kategori):</label>
             <input type="file" id="csvFileInput" accept=".csv">
-            <button class="reset-btn" onclick="resetData()">Hapus Memori (Reset Default)</button>
+            
+            <label style="font-size: 0.85rem;">2. Pilih Kategori (Deck):</label>
+            <select id="categorySelect" onchange="filterCategory()">
+                <option value="Semua">Semua Kategori</option>
+            </select>
+            
+            <button onclick="resetData()" style="background: #6c757d; width: 100%; margin-top: 5px;">Hapus Memori (Reset)</button>
         </div>
 
-        <div class="flashcard-container">
-            <div id="flashcard" class="flashcard" onclick="flipCard()">
-                <div class="front">
-                    <h1 id="hanzi-text">漢字</h1>
-                    <p class="hint">Klik kartu untuk melihat arti</p>
-                </div>
-                <div class="back">
-                    <h2 id="pinyin-text">hànzì</h2>
-                    <p id="arti-text">Karakter Mandarin</p>
-                </div>
+        <!-- Timer & Flashcard -->
+        <div class="timer-container">
+            <input type="checkbox" id="quizModeToggle" onchange="toggleTimer()"> <label for="quizModeToggle" style="font-size: 0.9rem; color: var(--text-color);">Mode Ujian (15s)</label>
+            <span id="timer-display" style="display:none;">⏳ 15</span>
+        </div>
+
+        <div id="flashcard" class="flashcard" onclick="flipCard()">
+            <div class="front">
+                <h1 id="hanzi-text">漢字</h1>
+                <p class="hint">Klik untuk melihat arti</p>
+            </div>
+            <div class="back">
+                <h2 id="pinyin-text">hànzì</h2>
+                <p id="arti-text">Karakter Mandarin</p>
+                <p id="cat-text" style="font-size: 0.75rem; color: #888;">Kategori</p>
             </div>
         </div>
 
-        <div class="controls">
-            <button onclick="prevCard()">Sebelumnya</button>
-            <button onclick="shuffleCards()" style="background-color: #28a745;">Acak (Shuffle)</button>
-            <button onclick="nextCard()">Selanjutnya</button>
+        <!-- Tombol SRS (Spaced Repetition) -->
+        <div class="srs-controls" id="srs-buttons" style="display:none;">
+            <button class="btn-srs btn-hard" onclick="answerCard('sulit')">Sulit (Ulangi)</button>
+            <button class="btn-srs btn-good" onclick="answerCard('sedang')">Sedang</button>
+            <button class="btn-srs btn-easy" onclick="answerCard('mudah')">Mudah</button>
+        </div>
+        <!-- Tombol Normal (Jika kartu belum dibalik) -->
+        <div id="normal-buttons" style="margin-top: 15px;">
+            <button onclick="flipCard()" style="width: 100%; padding: 12px; font-size: 1rem;">Tampilkan Jawaban</button>
         </div>
 
-        <!-- FITUR BARU: AREA SPEAKING -->
-        <div class="speaking-container">
-            <p style="margin: 0 0 10px 0; font-weight: bold; color: #555;">Latihan Pengucapan</p>
-            <div>
-                <button class="btn-audio" onclick="playAudio()">🔊 Dengar</button>
-                <button class="btn-mic" onclick="startSpeaking()">🎤 Ucapkan</button>
-            </div>
-            <div id="speech-result">Tekan "Ucapkan" lalu bicara ke mikrofon.</div>
+        <!-- Speech Controls -->
+        <div class="speech-controls">
+            <button onclick="playAudio()" style="background:#17a2b8;">🔊 Dengar</button>
+            <button id="mic-btn" onclick="startSpeechRecognition()" style="background:#ff9800;">🎤 Ucapkan</button>
+            <p id="speech-result" style="margin-top: 10px; font-size: 0.9rem;">Teks terbaca: -</p>
+            <div id="score-text" style="font-weight: bold; color: #d9534f;">Skor: -</div>
         </div>
 
         <hr>
 
-        <div class="canvas-container">
-            <p style="color: #444; font-weight: bold; margin-bottom: 10px;">Latihan Coretan Guratan:</p>
+        <!-- Canvas -->
+        <div style="margin-bottom: 20px;">
+            <p style="font-weight: bold; font-size: 0.9rem;">Latihan Guratan Tangan:</p>
             <canvas id="writingCanvas" width="300" height="300"></canvas>
             <br>
-            <button onclick="clearCanvas()" style="background-color: #dc3545; margin-top: 10px;">Hapus Kanvas</button>
+            <button onclick="clearCanvas()" style="background: #dc3545; margin-top: 10px;">Hapus Coretan</button>
         </div>
+
     </div>
 
-    <!-- Script JavaScript -->
     <script>
-        const defaultVocab = [
-            {"hanzi": "環境", "pinyin": "huánjìng", "arti": "lingkungan"},
-            {"hanzi": "保護", "pinyin": "bǎohù", "arti": "melindungi"},
-            {"hanzi": "適應", "pinyin": "shìyìng", "arti": "beradaptasi"},
-            {"hanzi": "發展", "pinyin": "fāzhǎn", "arti": "berkembang / perkembangan"},
-            {"hanzi": "影響", "pinyin": "yǐngxiǎng", "arti": "pengaruh / memengaruhi"}
-        ];
-
-        let vocabData = [];
+        // ==========================================
+        // 1. Inisialisasi Data & Variabel
+        // ==========================================
+        let fullVocab = [];
+        let activeDeck = [];
         let currentIndex = 0;
         let isFlipped = false;
+        
+        // Timer Variables
+        let timerInterval;
+        let timeLeft = 15;
+        let isQuizMode = false;
 
+        // Stats Variables
+        let today = new Date().toLocaleDateString();
+        let stats = JSON.parse(localStorage.getItem('tocflStats')) || { date: today, reviewed: 0, totalScore: 0, speechCount: 0 };
+        if(stats.date !== today) { stats = { date: today, reviewed: 0, totalScore: 0, speechCount: 0 }; }
+
+        // Data Default
+        const defaultVocab = [
+            {hanzi: "環境", pinyin: "huánjìng", arti: "lingkungan", kategori: "Default"},
+            {hanzi: "保護", pinyin: "bǎohù", arti: "melindungi", kategori: "Default"}
+        ];
+
+        // Load dari Local Storage
         const savedData = localStorage.getItem('tocflVocab');
-        if (savedData) {
-            vocabData = JSON.parse(savedData);
-        } else {
-            vocabData = [...defaultVocab]; 
+        fullVocab = savedData ? JSON.parse(savedData) : [...defaultVocab];
+
+        // ==========================================
+        // 2. Logika Kategori & Tampilan Awal
+        // ==========================================
+        function populateCategories() {
+            const select = document.getElementById('categorySelect');
+            select.innerHTML = '<option value="Semua">Semua Kategori</option>';
+            let categories = [...new Set(fullVocab.map(item => item.kategori || "Umum"))];
+            
+            categories.forEach(cat => {
+                let option = document.createElement('option');
+                option.value = cat; option.textContent = cat;
+                select.appendChild(option);
+            });
         }
 
-        const cardEl = document.getElementById('flashcard');
-        const hanziEl = document.getElementById('hanzi-text');
-        const pinyinEl = document.getElementById('pinyin-text');
-        const artiEl = document.getElementById('arti-text');
-        const speechResultEl = document.getElementById('speech-result');
-
-        function loadCard(index) {
-            hanziEl.textContent = vocabData[index].hanzi;
-            pinyinEl.textContent = vocabData[index].pinyin;
-            artiEl.textContent = vocabData[index].arti;
+        function filterCategory() {
+            const selectedCat = document.getElementById('categorySelect').value;
+            activeDeck = selectedCat === "Semua" ? [...fullVocab] : fullVocab.filter(item => (item.kategori || "Umum") === selectedCat);
             
-            if (isFlipped) flipCard();
+            // Acak urutan kartu setiap kali pilih kategori
+            activeDeck.sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+            if(activeDeck.length > 0) loadCard(currentIndex);
+            else alert("Kategori kosong!");
+        }
+
+        // ==========================================
+        // 3. Logika Flashcard & Timer
+        // ==========================================
+        function loadCard(index) {
+            if(activeDeck.length === 0) return;
+            
+            document.getElementById('hanzi-text').textContent = activeDeck[index].hanzi;
+            document.getElementById('pinyin-text').textContent = activeDeck[index].pinyin;
+            document.getElementById('arti-text').textContent = activeDeck[index].arti;
+            document.getElementById('cat-text').textContent = "Tag: " + (activeDeck[index].kategori || "Umum");
+            
+            if (isFlipped) {
+                isFlipped = false;
+                document.getElementById('flashcard').classList.remove('flipped');
+            }
+            
+            // Atur Visibilitas Tombol
+            document.getElementById('srs-buttons').style.display = "none";
+            document.getElementById('normal-buttons').style.display = "block";
+
+            // Reset UI Suara & Kanvas
+            document.getElementById('speech-result').textContent = "Teks terbaca: -";
+            document.getElementById('score-text').textContent = "Skor: -";
             clearCanvas(); 
-            speechResultEl.innerHTML = 'Tekan "Ucapkan" lalu bicara ke mikrofon.'; // Reset status mic
+
+            // Reset Timer jika Quiz Mode aktif
+            if(isQuizMode) startTimer();
         }
 
         function flipCard() {
-            isFlipped = !isFlipped;
-            cardEl.classList.toggle('flipped');
+            if(!isFlipped && activeDeck.length > 0) {
+                isFlipped = true;
+                document.getElementById('flashcard').classList.add('flipped');
+                document.getElementById('srs-buttons').style.display = "flex";
+                document.getElementById('normal-buttons').style.display = "none";
+                clearInterval(timerInterval); // Hentikan timer saat kartu dibalik
+            }
         }
 
-        function nextCard() { currentIndex = (currentIndex + 1) % vocabData.length; loadCard(currentIndex); }
-        function prevCard() { currentIndex = (currentIndex - 1 + vocabData.length) % vocabData.length; loadCard(currentIndex); }
+        // Logika Timer Ujian
+        function toggleTimer() {
+            isQuizMode = document.getElementById('quizModeToggle').checked;
+            document.getElementById('timer-display').style.display = isQuizMode ? "inline-block" : "none";
+            if(isQuizMode) startTimer(); else clearInterval(timerInterval);
+        }
 
-        function shuffleCards() {
-            for (let i = vocabData.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [vocabData[i], vocabData[j]] = [vocabData[j], vocabData[i]]; 
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 15;
+            document.getElementById('timer-display').textContent = `⏳ ${timeLeft}s`;
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer-display').textContent = `⏳ ${timeLeft}s`;
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    flipCard(); // Paksa buka kartu
+                    // Opsional: mainkan suara 'tettt' waktu habis disini
+                }
+            }, 1000);
+        }
+
+        // ==========================================
+        // 4. Logika Spaced Repetition (SRS)
+        // ==========================================
+        function answerCard(difficulty) {
+            updateStatsCard(); // Tambah hitungan kartu harian
+
+            let currentCard = activeDeck[currentIndex];
+
+            if(difficulty === 'sulit') {
+                // Masukkan kembali ke bagian agak belakang dari antrean
+                activeDeck.splice(currentIndex, 1);
+                activeDeck.splice(Math.min(currentIndex + 3, activeDeck.length), 0, currentCard);
+                // Index tidak ditambah karena kartu saat ini sudah digeser
+            } else {
+                // Lanjut ke kartu berikutnya
+                currentIndex++;
             }
-            currentIndex = 0; 
+
+            if(currentIndex >= activeDeck.length) {
+                alert("Sesi selesai untuk kategori ini!");
+                currentIndex = 0;
+                activeDeck.sort(() => Math.random() - 0.5); // Acak ulang
+            }
+
             loadCard(currentIndex);
         }
 
         // ==========================================
-        // FITUR BARU 1: TEXT TO SPEECH (Membaca Audio)
+        // 5. Fitur CSV Upload (Mendukung 4 Kolom)
         // ==========================================
-        function playAudio() {
-            const targetHanzi = vocabData[currentIndex].hanzi;
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(targetHanzi);
-                utterance.lang = 'zh-TW'; // Aksara Tradisional dengan Aksen Taiwan
-                utterance.rate = 0.8; // Diperlambat sedikit agar jelas
-                window.speechSynthesis.speak(utterance);
-            } else {
-                alert("Browser Anda tidak mendukung fitur suara.");
-            }
-        }
-
-        // ==========================================
-        // FITUR BARU 2: SPEECH TO TEXT & SCORING
-        // ==========================================
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition;
-
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'zh-TW'; // Mendengarkan aksen Taiwan
-            recognition.continuous = false;
-            recognition.interimResults = false;
-        }
-
-        function startSpeaking() {
-            if (!recognition) {
-                alert("Browser ini tidak mendukung pengenalan suara. Gunakan Google Chrome.");
-                return;
-            }
-
-            const targetHanzi = vocabData[currentIndex].hanzi;
-            speechResultEl.innerHTML = "<em>Mendengarkan... (Silakan bicara)</em>";
-            
-            recognition.start();
-
-            recognition.onresult = function(event) {
-                // Hapus tanda baca dari hasil tangkapan agar hitungan skor akurat
-                let spokenText = event.results[0][0].transcript.replace(/[.,!?，。！？]/g, '');
-                
-                let score = calculateSimilarity(spokenText, targetHanzi);
-                
-                let scoreClass = "score-low";
-                if (score >= 80) scoreClass = "score-high";
-                else if (score >= 50) scoreClass = "score-med";
-
-                speechResultEl.innerHTML = `Anda bilang: <strong>${spokenText}</strong><br>
-                                            Kecocokan: <span class="${scoreClass}">${score}%</span>`;
-            };
-
-            recognition.onerror = function(event) {
-                speechResultEl.innerHTML = "<span style='color:red;'>Gagal mendengar suara. Pastikan izin mikrofon aktif.</span>";
-            };
-        }
-
-        // Algoritma Levenshtein Distance (Menghitung Kesesuaian Teks)
-        function calculateSimilarity(s1, s2) {
-            if (s1 === s2) return 100;
-            if (s1.length === 0 || s2.length === 0) return 0;
-
-            let matrix = [];
-            for (let i = 0; i <= s2.length; i++) matrix[i] = [i];
-            for (let j = 0; j <= s1.length; j++) matrix[0][j] = j;
-
-            for (let i = 1; i <= s2.length; i++) {
-                for (let j = 1; j <= s1.length; j++) {
-                    if (s2.charAt(i - 1) === s1.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1, // substitusi
-                            Math.min(matrix[i][j - 1] + 1, // insersi
-                                     matrix[i - 1][j] + 1) // delesi
-                        );
-                    }
-                }
-            }
-            let distance = matrix[s2.length][s1.length];
-            let maxLength = Math.max(s1.length, s2.length);
-            return Math.round(((maxLength - distance) / maxLength) * 100);
-        }
-
-
-        // ==========================================
-        // Logika CSV & Kanvas (Sama seperti sebelumnya)
-        // ==========================================
-        const csvInput = document.getElementById('csvFileInput');
-        csvInput.addEventListener('change', function(e) {
+        document.getElementById('csvFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -324,55 +337,144 @@
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue; 
-                const columns = line.split(',');
+                const columns = line.split(/[;,]/); // Dukung koma & titik koma
+                
                 if (columns.length >= 3) {
-                    if (columns[0].toLowerCase() === 'hanzi') continue; 
-                    newVocab.push({ hanzi: columns[0].trim(), pinyin: columns[1].trim(), arti: columns[2].trim() });
+                    if (columns[0].toLowerCase().includes('hanzi')) continue;
+                    newVocab.push({
+                        hanzi: columns[0].trim(),
+                        pinyin: columns[1].trim(),
+                        arti: columns[2].trim(),
+                        kategori: columns.length >= 4 ? columns[3].trim() : "Kosakata Baru"
+                    });
                 }
             }
+
             if (newVocab.length > 0) {
-                vocabData = newVocab; 
-                localStorage.setItem('tocflVocab', JSON.stringify(vocabData));
-                currentIndex = 0; loadCard(currentIndex);
-                alert(`Berhasil memuat ${vocabData.length} kosa kata baru!`);
-            } else { alert("Format CSV salah."); }
+                // Gabungkan atau Timpa (Disini kita Timpa agar bersih)
+                fullVocab = newVocab; 
+                localStorage.setItem('tocflVocab', JSON.stringify(fullVocab));
+                populateCategories();
+                filterCategory(); // Otomatis load
+                alert(`Berhasil memuat ${fullVocab.length} kosa kata baru!`);
+            }
         }
 
         function resetData() {
-            if (confirm("Hapus kosa kata tersimpan?")) {
-                localStorage.removeItem('tocflVocab'); 
-                vocabData = [...defaultVocab]; 
-                currentIndex = 0; loadCard(currentIndex);
-                csvInput.value = ""; 
+            if (confirm("Reset ke data bawaan?")) {
+                localStorage.removeItem('tocflVocab');
+                fullVocab = [...defaultVocab];
+                populateCategories(); filterCategory();
             }
         }
 
+        // ==========================================
+        // 6. Speaking & Listening API
+        // ==========================================
+        function playAudio() {
+            if(activeDeck.length === 0) return;
+            const textToSpeak = activeDeck[currentIndex].hanzi;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'zh-TW'; utterance.rate = 0.85;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        function startSpeechRecognition() {
+            if (!SpeechRecognition) return alert("Gunakan Google Chrome.");
+            const micBtn = document.getElementById('mic-btn');
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'zh-TW'; recognition.interimResults = false;
+
+            recognition.onstart = function() { micBtn.classList.add("recording"); micBtn.textContent = "🎙️..."; };
+            recognition.onspeechend = function() { recognition.stop(); };
+            
+            recognition.onresult = function(event) {
+                micBtn.classList.remove("recording"); micBtn.textContent = "🎤 Ucapkan";
+                let spokenText = event.results[0][0].transcript.replace(/[.,!?，。！？]/g, '');
+                let targetText = activeDeck[currentIndex].hanzi;
+                
+                document.getElementById('speech-result').textContent = `Anda bilang: "${spokenText}"`;
+                
+                let matches = 0; let tempSpoken = spokenText;
+                for (let char of targetText) {
+                    if (tempSpoken.includes(char)) { matches++; tempSpoken = tempSpoken.replace(char, ''); }
+                }
+                const score = Math.round((matches / targetText.length) * 100);
+                
+                let sText = document.getElementById('score-text');
+                sText.textContent = `Skor Kesesuaian: ${score}%`;
+                sText.style.color = score === 100 ? "#28a745" : (score >= 50 ? "#ff9800" : "#dc3545");
+                
+                updateStatsScore(score); // Update statistik rata-rata
+            };
+            
+            recognition.onerror = function() { micBtn.classList.remove("recording"); micBtn.textContent = "🎤 Ucapkan"; };
+            recognition.start();
+        }
+
+        // ==========================================
+        // 7. Dark Mode & Statistik Harian
+        // ==========================================
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('tocflTheme', isDark ? 'dark' : 'light');
+        }
+
+        // Load Theme Memory
+        if(localStorage.getItem('tocflTheme') === 'dark') document.body.classList.add('dark-mode');
+
+        function updateStatsCard() {
+            stats.reviewed++; saveStats();
+        }
+        function updateStatsScore(score) {
+            stats.speechCount++; stats.totalScore += score; saveStats();
+        }
+        function saveStats() {
+            localStorage.setItem('tocflStats', JSON.stringify(stats));
+            renderStats();
+        }
+        function renderStats() {
+            document.getElementById('stat-cards').textContent = stats.reviewed;
+            let avg = stats.speechCount === 0 ? 0 : Math.round(stats.totalScore / stats.speechCount);
+            document.getElementById('stat-acc').textContent = avg + "%";
+        }
+
+        // ==========================================
+        // 8. Kanvas Menulis (Tidak Berubah)
+        // ==========================================
         const canvas = document.getElementById('writingCanvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
-        ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.strokeStyle = "#333";
+        ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.strokeStyle = "#888";
 
-        function startDrawing(e) { isDrawing = true; draw(e); }
-        function stopDrawing() { isDrawing = false; ctx.beginPath(); }
         function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault(); 
+            if (!isDrawing) return; e.preventDefault(); 
             const rect = canvas.getBoundingClientRect();
             const x = (e.clientX || e.touches[0].clientX) - rect.left;
             const y = (e.clientY || e.touches[0].clientY) - rect.top;
             ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
         }
-
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mousedown', (e) => { isDrawing = true; draw(e); });
+        canvas.addEventListener('mouseup', () => { isDrawing = false; ctx.beginPath(); });
         canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('touchstart', startDrawing, {passive: false});
-        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('mouseout', () => { isDrawing = false; ctx.beginPath(); });
+        canvas.addEventListener('touchstart', (e) => { isDrawing = true; draw(e); }, {passive: false});
+        canvas.addEventListener('touchend', () => { isDrawing = false; ctx.beginPath(); });
         canvas.addEventListener('touchmove', draw, {passive: false});
+
         function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-        loadCard(currentIndex);
+        // ==========================================
+        // INIT
+        // ==========================================
+        populateCategories();
+        filterCategory();
+        renderStats();
+
     </script>
 </body>
 </html>
