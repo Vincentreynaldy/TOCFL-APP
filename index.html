@@ -122,10 +122,10 @@
         <!-- TAB 2: UJIAN CAT -->
         <div id="tab-cat" class="tab-content">
             <h3>Simulasi Ujian CAT</h3>
-            <p style="font-size:0.9rem;">Ujian berisi 50 soal adaptif. Level 1 & 2 akan meminta Anda menebak arti Indonesia dari Hanzi. Level 3 akan menguji soal kalimat rumpang panjang.</p>
+            <p style="font-size:0.9rem;">Anti-Duplikat: Soal akan menyesuaikan jumlah kosakata unik Anda (Maks. 50). Level 3 kini memberi waktu <b>60 detik</b>.</p>
             
             <div id="cat-start-screen">
-                <button class="btn-primary w-100" style="padding:15px; font-size:1.1rem;" onclick="startCAT()">🚀 Mulai Ujian (50 Soal)</button>
+                <button class="btn-primary w-100" style="padding:15px; font-size:1.1rem;" onclick="startCAT()">🚀 Mulai Ujian</button>
             </div>
 
             <div id="cat-exam-screen" class="cat-container" style="display: none;">
@@ -155,7 +155,7 @@
         <div id="tab-bank" class="tab-content">
             <h3>Bank Kosakata</h3>
             <div style="background: var(--container-bg); padding: 15px; border-radius: 8px;">
-                <p style="font-size:0.85rem; margin-top:0;">File CSV yang diunggah akan otomatis <b>disimpan & digabungkan</b>.</p>
+                <p style="font-size:0.85rem; margin-top:0;">Unggah file CSV baru di sini.</p>
                 <input type="file" id="csvFileInput" accept=".csv">
             </div>
             
@@ -190,44 +190,35 @@
         let isFlipped = false;
 
         // ==========================================
-        // DATABASE KALIMAT PANJANG (Diperbesar untuk 50 Soal)
+        // DATABASE KALIMAT KEHIDUPAN SEHARI-HARI
         // ==========================================
         const sentenceDB = {
-            "前面": "這家餐廳的 ＿＿＿ 有很多停車位，我們把車停在那裡吧。",
-            "後面": "我的家就在學校的 ＿＿＿，走路五分鐘就到了。",
-            "外面": "現在 ＿＿＿ 正在下大雨，你出門記得要帶傘。",
-            "旁邊": "那家有名的咖啡店就在郵局的 ＿＿＿，非常容易找。",
-            "裡面": "這個箱子 ＿＿＿ 裝了很多舊衣服，不要隨便打開。",
-            "裡": "這個箱子 ＿＿＿ 裝了很多舊衣服，不要隨便打開。",
-            "地方": "台北是一個很熱鬧的 ＿＿＿，有很多好吃的東西和好玩的景點。",
-            "帶": "明天去爬山的時候，記得多 ＿＿＿ 一些水和外套。",
-            "拿": "你可以幫我 ＿＿＿ 桌上的那本書嗎？我現在手沒空。",
-            "站": "因為公車上的人太多了，沒有位子坐，我只好一直 ＿＿＿ 著。",
-            "鞋子": "這雙 ＿＿＿ 雖然很貴，但是穿起來非常舒服，很適合跑步。",
-            "眼睛": "他每天晚上都在黑暗中玩手機，現在 ＿＿＿ 覺得很不舒服。",
-            "生病": "小明昨天淋了雨，今天早上就 ＿＿＿ 了，不能來上學。",
-            "頭": "我昨天晚上沒睡好，現在覺得 ＿＿＿ 很痛，想休息一下。",
-            "腳": "踢足球的時候不小心跌倒了，現在我的 ＿＿＿ 痛得不能走路。",
-            "手": "吃東西以前，一定要記得先把 ＿＿＿ 洗乾淨。",
-            "藥": "醫生說，這個 ＿＿＿ 一天要吃三次，飯後吃最好。",
-            "進": "上課時間快到了，同學們請趕快 ＿＿＿ 教室坐好。",
-            "出": "他才剛 ＿＿＿ 門不到五分鐘，就發現自己忘了帶錢包。",
-            "飛機": "去美國如果搭 ＿＿＿ 的話，大約需要十幾個小時才會到。",
-            "火車": "逢年過節的時候，買 ＿＿＿ 票回南部總是非常困難。",
-            "計程車": "太晚了沒有公車，我們還是叫一輛 ＿＿＿ 回飯店吧。",
-            "快": "考試快結束了，你寫字要 ＿＿＿ 一點，不然會寫不完。",
-            "慢": "這個城市的步調比較 ＿＿＿，很適合退休以後來這裡生活。",
-            "附近": "我們家 ＿＿＿ 有一個很大的公園，週末會有很多人去散步。",
-            "餓": "我今天太忙了，連午餐都沒吃，現在肚子真的非常 ＿＿＿。",
-            "痛": "昨天搬了太多重的東西，今天覺得全身都很 ＿＿＿。",
-            "感冒": "天氣變冷了，要多穿一點衣服，才不會容易 ＿＿＿。",
-            "累": "連續工作了十幾個小時，他現在覺得非常 ＿＿＿，只想睡覺。",
-            "看病": "如果身體真的不舒服，就不要硬撐了，趕快去醫院 ＿＿＿ 吧。",
-            "外國": "為了學習不同的文化，他決定高中畢業後去 ＿＿＿ 念大學。",
-            "身體": "要有好的 ＿＿＿，除了多運動，還要注意飲食的習慣。",
-            "遲到": "這已經是你這個星期第三次 ＿＿＿ 了，如果明天再不準時，老闆一定會非常生氣。",
-            "請客": "為了慶祝你順利考上大學，今天晚上的晚餐我 ＿＿＿，你想吃什麼都可以！",
-            "捷運": "在台北市區，搭 ＿＿＿ 是最方便也最快的交通方式，不用擔心塞車的問題。"
+            "上": "桌子 ＿＿＿ 有一本很厚的書，你可以幫我拿過來嗎？",
+            "下": "我的貓非常怕冷，所以冬天的時候牠喜歡躲在沙發 ＿＿＿ 睡覺。",
+            "外": "今天 ＿＿＿ 面正在下大雨，你出門的時候一定要記得帶傘。",
+            "前": "我們學校的 ＿＿＿ 面新開了一家早餐店，三明治非常好吃。",
+            "後": "如果你找不到洗手間，它就在那家便利商店的 ＿＿＿ 面。",
+            "裡": "冰箱 ＿＿＿ 已經沒有水果和蔬菜了，我們下午去超市買一些吧。",
+            "裡/裏": "冰箱 ＿＿＿ 已經沒有水果和蔬菜了，我們下午去超市買一些吧。",
+            "地方": "這個 ＿＿＿ 的風景非常漂亮，週末有很多年輕人來這裡拍照。",
+            "帶": "明天去爬山的時候，除了水，也要記得 ＿＿＿ 一件保暖的外套。",
+            "拿": "我現在手很髒，你可以幫我從包包裡 ＿＿＿ 出我的手機嗎？",
+            "快": "你走得太 ＿＿＿ 了，我的腳很痛，沒有辦法跟上你。",
+            "慢": "週末不用去學校的時候，我喜歡 ＿＿＿ 慢地喝咖啡、看小說。",
+            "站": "公車上的人真的太多了，沒有位子坐，我只好一直 ＿＿＿ 著。",
+            "計程車": "晚上的雨下得太大了，我們還是不要走路，直接搭 ＿＿＿ 回家吧。",
+            "火車": "從台北搭 ＿＿＿ 到花蓮大約需要兩個小時，一路上可以看風景。",
+            "出": "他剛 ＿＿＿ 門不到五分鐘，你就打電話來找他了。",
+            "手": "為了健康，吃飯以前一定要記得先把 ＿＿＿ 洗乾淨。",
+            "身體": "你最近每天都加班到半夜，要多注意 ＿＿＿，不要太累了。",
+            "藥": "醫生特別交代，這個 ＿＿＿ 一天要吃三次，吃完飯以後吃最好。",
+            "生病": "小明昨天晚上沒有穿外套就出門，結果今天早上就 ＿＿＿ 了。",
+            "餓": "現在已經下午三點了，我都還沒吃午餐，肚子覺得非常 ＿＿＿。",
+            "鞋子": "進入這間日式餐廳以前，請大家先把 ＿＿＿ 脫在外面。",
+            "痛": "昨天晚上睡覺的姿勢不對，今天早上起床覺得脖子非常 ＿＿＿。",
+            "累": "在飯店打工站了一整天，現在覺得整個人非常 ＿＿＿，只想睡覺。",
+            "看病": "你一直咳嗽發燒，還是跟老闆請假去醫院 ＿＿＿ 比較安全。",
+            "捷運": "在台北市區，搭 ＿＿＿ 買東西或找朋友是最方便的交通方式。"
         };
 
         if(fullVocab.length === 0) {
@@ -321,7 +312,7 @@
         }
 
         // ==========================================
-        // 4. Sistem Ujian CAT Adaptif (50 Soal)
+        // 4. Sistem Ujian CAT Adaptif (Anti-Duplikat & 60s)
         // ==========================================
         let catQuestions = [];
         let currentCatIndex = 0;
@@ -330,22 +321,26 @@
         let catTimerInterval;
         let timeLeft = 15;
         let currentCorrectAnswer = "";
-        const TOTAL_QUESTIONS = 50; // Jumlah soal ujian sesungguhnya
+        let testLength = 0; // Dinamis
 
         function startCAT() {
-            if(fullVocab.length < 10) return alert("Tambahkan minimal 10 kata di Bank Data agar pilihan ganda acak berfungsi maksimal.");
+            if(fullVocab.length < 5) return alert("Tambahkan minimal 5 kata di Bank Data.");
             
             document.getElementById('cat-start-screen').style.display = "none";
             document.getElementById('cat-result-screen').style.display = "none";
             document.getElementById('cat-exam-screen').style.display = "block";
             
-            // Ambil 50 kata secara acak (jika kurang dari 50, ambil semua dan gandakan/acak lagi agar pas 50)
-            let shuffled = [...fullVocab].sort(() => Math.random() - 0.5);
-            catQuestions = [];
-            while(catQuestions.length < TOTAL_QUESTIONS) {
-                catQuestions = catQuestions.concat([...shuffled].sort(() => Math.random() - 0.5));
-            }
-            catQuestions = catQuestions.slice(0, TOTAL_QUESTIONS);
+            // Hapus duplikat dari array
+            let uniqueVocabMap = new Map();
+            fullVocab.forEach(item => uniqueVocabMap.set(item.hanzi, item));
+            let uniqueVocab = Array.from(uniqueVocabMap.values());
+            
+            // Acak urutan
+            let shuffled = uniqueVocab.sort(() => Math.random() - 0.5);
+            
+            // Tentukan panjang soal (Maksimal 50, atau sebanyak vocab yang unik)
+            testLength = Math.min(50, shuffled.length);
+            catQuestions = shuffled.slice(0, testLength);
 
             currentCatIndex = 0;
             catLevel = 1;
@@ -357,7 +352,7 @@
         function loadCatQuestion() {
             if(currentCatIndex >= catQuestions.length) return finishCAT();
 
-            document.getElementById('cat-progress').textContent = `Soal ${currentCatIndex + 1} / ${TOTAL_QUESTIONS}`;
+            document.getElementById('cat-progress').textContent = `Soal ${currentCatIndex + 1} / ${testLength}`;
             
             let targetWord = catQuestions[currentCatIndex];
             let questionText = "";
@@ -368,21 +363,22 @@
             const qDisplay = document.getElementById('cat-question-display');
             qDisplay.classList.remove('long-text'); 
 
-            let cleanHanzi = targetWord.hanzi.replace(/\(.*\)/g, ""); // Bersihkan jika ada tanda kurung seperti 上(面)
+            // Deteksi teks panjang dengan mengabaikan tanda kurung, contoh "上(面)" -> "上"
+            let cleanHanzi = targetWord.hanzi.replace(/\(.*\)/g, ""); 
             let hasLongSentence = sentenceDB[cleanHanzi] !== undefined;
 
             if (catLevel >= 3 && hasLongSentence) {
-                // LEVEL 3: Teks Panjang (Cari Hanzi)
+                // LEVEL 3: Kalimat Panjang Kehidupan Sehari-hari (WAKTU DITAMBAH JADI 60 DETIK)
                 document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 3 (Kalimat Panjang)`;
                 questionText = sentenceDB[cleanHanzi];
                 pinyinText = "💡 Pilih Hanzi yang tepat untuk mengisi bagian yang kosong.";
                 currentCorrectAnswer = targetWord.hanzi;
                 options = generateOptions(targetWord.hanzi, 'hanzi');
                 qDisplay.classList.add('long-text');
-                displayTime = 25; 
+                displayTime = 60; // 1 Menit penuh
             } 
             else if (catLevel >= 2) {
-                // LEVEL 2: Tebak Kosakata - Hanzi -> Jawaban B. Indonesia (Tanpa Pinyin)
+                // LEVEL 2: Tebak Hanzi -> B. Indo (Tanpa Pinyin)
                 document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 2`;
                 questionText = targetWord.hanzi;
                 pinyinText = "---";
@@ -390,7 +386,7 @@
                 options = generateOptions(targetWord.arti, 'arti');
             }
             else {
-                // LEVEL 1: Tebak Kosakata - Hanzi + Pinyin -> Jawaban B. Indonesia
+                // LEVEL 1: Tebak Hanzi + Pinyin -> B. Indo
                 document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 1`;
                 questionText = targetWord.hanzi;
                 pinyinText = targetWord.pinyin;
@@ -470,13 +466,14 @@
             let finalBand = "A1";
             let desc = "Fokus pada kecepatan mengenali huruf.";
             
-            // Maksimal skor 50 soal x level 3 = 150 poin
-            if(catScore >= 115) { finalBand = "B2 (Level 4)"; desc = "Luar Biasa! Stamina dan akurasi Anda setara ujian asli."; }
-            else if(catScore >= 80) { finalBand = "B1 (Level 3)"; desc = "Sangat Bagus! Anda sudah siap mendaftar ke Tungnan University."; }
-            else if(catScore >= 50) { finalBand = "A2 (Level 2)"; desc = "Bagus! Fondasi membaca Anda sudah bertahan di tekanan 50 soal."; }
+            let maxPossibleScore = testLength * 3;
+            
+            if(catScore >= (maxPossibleScore * 0.75)) { finalBand = "B2 (Level 4)"; desc = "Luar Biasa! Stamina membaca Anda setara ujian asli."; }
+            else if(catScore >= (maxPossibleScore * 0.5)) { finalBand = "B1 (Level 3)"; desc = "Sangat Bagus! Siap mendaftar ke Tungnan University."; }
+            else if(catScore >= (maxPossibleScore * 0.3)) { finalBand = "A2 (Level 2)"; desc = "Bagus! Fondasi membaca Anda sudah bertahan baik."; }
             
             document.getElementById('cat-final-score').textContent = finalBand;
-            document.getElementById('cat-final-desc').textContent = desc + ` (Skor Mentah: ${catScore} / 150)`;
+            document.getElementById('cat-final-desc').textContent = desc + ` (Skor Mentah: ${catScore} / ${maxPossibleScore})`;
         }
 
         // ==========================================
