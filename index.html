@@ -71,9 +71,10 @@
         
         /* CAT Exam Styles */
         .cat-container { background: var(--container-bg); padding: 20px; border-radius: 12px; margin-top: 20px; }
-        .cat-question { font-size: 2.5rem; margin: 20px 0; font-weight: bold; }
+        .cat-question { font-size: 2.5rem; margin: 20px 0; font-weight: bold; transition: all 0.3s; }
+        .cat-question.long-text { font-size: 1.3rem; text-align: left; line-height: 1.6; }
         .cat-options { display: flex; flex-direction: column; gap: 10px; }
-        .cat-option-btn { background: var(--card-bg); color: var(--text-color); border: 2px solid var(--border-color); padding: 15px; font-size: 1.1rem; border-radius: 8px; text-align: left; }
+        .cat-option-btn { background: var(--card-bg); color: var(--text-color); border: 2px solid var(--border-color); padding: 15px; font-size: 1.2rem; border-radius: 8px; text-align: left; }
         .cat-option-btn:hover { border-color: var(--primary); }
         .cat-timer { font-size: 1.5rem; color: var(--danger); font-weight: bold; }
         .cat-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
@@ -128,7 +129,7 @@
         <!-- TAB 2: UJIAN CAT -->
         <div id="tab-cat" class="tab-content">
             <h3>Simulasi Ujian CAT</h3>
-            <p style="font-size:0.9rem;">Sistem akan menyesuaikan tingkat kesulitan soal berdasarkan jawaban Anda secara real-time.</p>
+            <p style="font-size:0.9rem;">Sistem adaptif: Jika Anda masuk ke Level 3, Anda akan diuji dengan soal bacaan kalimat panjang berwaktu.</p>
             
             <div id="cat-start-screen">
                 <button class="btn-primary w-100" style="padding:15px; font-size:1.1rem;" onclick="startCAT()">🚀 Mulai Ujian (15 Soal)</button>
@@ -139,7 +140,7 @@
                     <span id="cat-progress">Soal 1/15</span>
                     <span id="cat-timer" class="cat-timer">⏳ 15s</span>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--primary);" id="cat-level-indicator">Tingkat Kesulitan: Level 2</div>
+                <div style="font-size: 0.8rem; color: var(--primary); font-weight:bold;" id="cat-level-indicator">Tingkat Kesulitan: Level 1</div>
                 
                 <div id="cat-question-display" class="cat-question">漢字</div>
                 <div id="cat-pinyin-display" style="color:#888; margin-bottom: 15px;">hànzì</div>
@@ -174,7 +175,6 @@
 
     </div>
 
-    <!-- BOTTOM NAVIGATION BAR -->
     <div class="tab-bar">
         <button class="tab-btn active" onclick="switchTab('flashcard', this)">
             <span>🎴</span><span>Flashcard</span>
@@ -189,26 +189,50 @@
 
     <script>
         // ==========================================
-        // 1. Inisialisasi Data & Variabel
+        // 1. Data & Variabel
         // ==========================================
         let fullVocab = JSON.parse(localStorage.getItem('tocflVocab')) || [];
         let activeDeck = [];
         let currentIndex = 0;
         let isFlipped = false;
 
-        // Default Data if empty
+        // ==========================================
+        // DATABASE KALIMAT PANJANG (LEVEL 3 & 4)
+        // Di sini Anda bisa menambahkan kalimat baru nanti.
+        // Sistem akan mencari kata kunci ini di bank data Anda.
+        // ==========================================
+        const sentenceDB = {
+            "計程車": "因為今天下大雨，而且我帶了很多東西，所以我沒有搭捷運，而是叫了一輛 ＿＿＿ 回家。",
+            "感冒": "最近天氣變化很大，忽冷忽熱的，你要多穿一點衣服，小心別 ＿＿＿ 了。",
+            "餓": "我今天早上太晚起床，沒有吃早餐就去學校了，現在肚子非常 ＿＿＿。",
+            "遲到": "這已經是你這個星期第三次 ＿＿＿ 了，如果明天再不準時，老闆一定會非常生氣。",
+            "請客": "為了慶祝你順利考上東南科技大學，今天晚上的晚餐我 ＿＿＿，你想吃什麼都可以！",
+            "圖書館": "下個星期就要期末考了，家裡太吵，我這個週末打算去 ＿＿＿ 好好讀書。",
+            "附近": "不好意思，請問這 ＿＿＿ 有沒有便利商店？我口很渴，想買一瓶水。",
+            "看病": "你一直咳嗽，而且頭也很燙，下午還是跟老師請假去醫院 ＿＿＿ 吧。",
+            "飛機": "從台灣飛回印尼，搭 ＿＿＿ 大概需要五個小時的時間，在上面可以睡一覺。",
+            "藥": "醫生特別交代，吃完飯以後要記得吃 ＿＿＿，這樣你的身體才會快點好起來。",
+            "捷運": "在台北市區，搭 ＿＿＿ 是最方便也最快的交通方式，不用擔心塞車的問題。",
+            "痛": "昨天晚上睡覺的時候姿勢不對，今天早上起床覺得脖子非常 ＿＿＿。",
+            "快": "時間不早了，我們走 ＿＿＿ 一點，不然電影就要開始了。",
+            "慢": "這位老爺爺的腳受傷了，所以他走路走得很 ＿＿＿。",
+            "外國": "我的哥哥在 ＿＿＿ 工作，我們通常只有過年的時候才能見面。",
+            "身體": "雖然努力工作賺錢很重要，但是 ＿＿＿ 的健康才是最重要的。",
+            "累": "今天在餐廳打工站了八個小時，現在覺得腳好痠，整個人非常 ＿＿＿。",
+            "火車": "如果要去花蓮旅行，搭 ＿＿＿ 邊看風景是一個非常好的選擇。"
+        };
+
         if(fullVocab.length === 0) {
             fullVocab = [
                 {hanzi: "捷運", pinyin: "jiéyùn", arti: "MRT (N)", kategori: "Default"},
                 {hanzi: "遲到", pinyin: "chídào", arti: "Terlambat (Vp)", kategori: "Default"},
-                {hanzi: "請客", pinyin: "qǐngkè", arti: "Mentraktir (V-sep)", kategori: "Default"},
-                {hanzi: "圖書館", pinyin: "túshūguǎn", arti: "Perpustakaan (N)", kategori: "Default"}
+                {hanzi: "請客", pinyin: "qǐngkè", arti: "Mentraktir (V-sep)", kategori: "Default"}
             ];
             saveVocab();
         }
 
         // ==========================================
-        // 2. Navigasi Multi-Tab
+        // 2. Navigasi
         // ==========================================
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -221,7 +245,7 @@
         }
 
         // ==========================================
-        // 3. Sistem Flashcard (SRS)
+        // 3. Flashcard SRS
         // ==========================================
         function populateCategories() {
             const select = document.getElementById('categorySelect');
@@ -237,7 +261,7 @@
         function filterCategory() {
             const selectedCat = document.getElementById('categorySelect').value;
             activeDeck = selectedCat === "Semua" ? [...fullVocab] : fullVocab.filter(item => (item.kategori || "Umum") === selectedCat);
-            activeDeck.sort(() => Math.random() - 0.5); // Acak urutan
+            activeDeck.sort(() => Math.random() - 0.5); 
             currentIndex = 0;
             loadCard(currentIndex);
         }
@@ -289,18 +313,18 @@
         }
 
         // ==========================================
-        // 4. Sistem Ujian CAT (Mock Test Adaptif)
+        // 4. Sistem Ujian CAT Adaptif (Baru: Kalimat Panjang)
         // ==========================================
         let catQuestions = [];
         let currentCatIndex = 0;
-        let catLevel = 2; 
+        let catLevel = 1; // Mulai dari level 1
         let catScore = 0;
         let catTimerInterval;
         let timeLeft = 15;
         let currentCorrectAnswer = "";
 
         function startCAT() {
-            if(fullVocab.length < 5) return alert("Kosakata terlalu sedikit. Tambahkan minimal 5 kata di Bank Data.");
+            if(fullVocab.length < 5) return alert("Tambahkan minimal 5 kata di Bank Data.");
             
             document.getElementById('cat-start-screen').style.display = "none";
             document.getElementById('cat-result-screen').style.display = "none";
@@ -308,7 +332,7 @@
             
             catQuestions = [...fullVocab].sort(() => Math.random() - 0.5).slice(0, 15);
             currentCatIndex = 0;
-            catLevel = 2;
+            catLevel = 1;
             catScore = 0;
             
             loadCatQuestion();
@@ -318,30 +342,45 @@
             if(currentCatIndex >= catQuestions.length) return finishCAT();
 
             document.getElementById('cat-progress').textContent = `Soal ${currentCatIndex + 1} / 15`;
-            document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level ${catLevel}`;
             
             let targetWord = catQuestions[currentCatIndex];
             let questionText = "";
             let pinyinText = "";
             let options = [];
+            let displayTime = 15; // Default 15 detik
 
-            if(catLevel === 1) {
-                questionText = targetWord.hanzi;
-                pinyinText = targetWord.pinyin;
-                currentCorrectAnswer = targetWord.arti;
-                options = generateOptions(targetWord.arti, 'arti');
+            const qDisplay = document.getElementById('cat-question-display');
+            qDisplay.classList.remove('long-text'); // Reset style
+
+            // LOGIKA ADAPTIF BARU
+            // Cek apakah targetWord ini ada kalimat panjangnya di sentenceDB
+            let hasLongSentence = sentenceDB[targetWord.hanzi] !== undefined;
+
+            if (catLevel >= 3 && hasLongSentence) {
+                // LEVEL 3/4: Teks Panjang Rumpang (Cloze Test)
+                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 3 (Teks Panjang)`;
+                questionText = sentenceDB[targetWord.hanzi];
+                pinyinText = "💡 Pilih Hanzi yang tepat untuk mengisi bagian yang kosong.";
+                currentCorrectAnswer = targetWord.hanzi;
+                options = generateOptions(targetWord.hanzi, 'hanzi');
+                qDisplay.classList.add('long-text'); // Kecilkan font agar muat
+                displayTime = 25; // Waktu ekstra untuk membaca kalimat
             } 
-            else if (catLevel === 2) {
-                questionText = targetWord.hanzi;
-                pinyinText = "---";
-                currentCorrectAnswer = targetWord.arti;
-                options = generateOptions(targetWord.arti, 'arti');
-            } 
-            else {
+            else if (catLevel >= 2) {
+                // LEVEL 2: Hanya Arti (B. Indo) -> Cari Hanzi
+                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 2`;
                 questionText = targetWord.arti;
                 pinyinText = "---";
                 currentCorrectAnswer = targetWord.hanzi;
                 options = generateOptions(targetWord.hanzi, 'hanzi');
+            }
+            else {
+                // LEVEL 1: Hanzi + Pinyin -> Cari Arti
+                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 1`;
+                questionText = targetWord.hanzi;
+                pinyinText = targetWord.pinyin;
+                currentCorrectAnswer = targetWord.arti;
+                options = generateOptions(targetWord.arti, 'arti');
             }
 
             document.getElementById('cat-question-display').textContent = questionText;
@@ -357,7 +396,7 @@
                 optContainer.appendChild(btn);
             });
 
-            startCatTimer();
+            startCatTimer(displayTime);
         }
 
         function generateOptions(correctStr, keyType) {
@@ -370,9 +409,9 @@
             return opts.sort(() => Math.random() - 0.5);
         }
 
-        function startCatTimer() {
+        function startCatTimer(seconds) {
             clearInterval(catTimerInterval);
-            timeLeft = 15;
+            timeLeft = seconds;
             document.getElementById('cat-timer').textContent = `⏳ ${timeLeft}s`;
             
             catTimerInterval = setInterval(() => {
@@ -392,21 +431,21 @@
 
             if(selectedStr === currentCorrectAnswer) {
                 if(btnElement) {
-                    btnElement.style.backgroundColor = "#28a745"; 
+                    btnElement.style.backgroundColor = "var(--success)"; 
                     btnElement.style.color = "white";
                 }
-                catScore += catLevel; 
-                catLevel = Math.min(3, catLevel + 1); 
+                catScore += catLevel; // Poin lebih besar jika jawab soal susah
+                catLevel = Math.min(3, catLevel + 1); // Naik level
             } else {
                 if(btnElement) {
-                    btnElement.style.backgroundColor = "#dc3545"; 
+                    btnElement.style.backgroundColor = "var(--danger)"; 
                     btnElement.style.color = "white";
                 }
-                catLevel = Math.max(1, catLevel - 1); 
+                catLevel = Math.max(1, catLevel - 1); // Turun level
             }
 
             currentCatIndex++;
-            setTimeout(loadCatQuestion, 800); 
+            setTimeout(loadCatQuestion, 1200); // Jeda agar bisa melihat jawaban benar/salah
         }
 
         function finishCAT() {
@@ -414,18 +453,19 @@
             document.getElementById('cat-result-screen').style.display = "block";
             
             let finalBand = "A1";
-            let desc = "Perlu banyak berlatih mengenali karakter.";
+            let desc = "Fokus pada kecepatan mengenali huruf.";
             
-            if(catScore >= 35) { finalBand = "B2 (Level 4)"; desc = "Luar Biasa! Anda siap membaca koran Taiwan."; }
-            else if(catScore >= 25) { finalBand = "B1 (Level 3)"; desc = "Sangat Bagus! Memenuhi syarat masuk Universitas."; }
-            else if(catScore >= 15) { finalBand = "A2 (Level 2)"; desc = "Bagus! Fondasi membaca sudah terbentuk kokoh."; }
+            // Maksimal skor 15 soal x level 3 = 45 poin
+            if(catScore >= 35) { finalBand = "B1 (Level 3)"; desc = "Luar Biasa! Kemampuan konteks Anda sangat baik."; }
+            else if(catScore >= 20) { finalBand = "A2 (Level 2)"; desc = "Bagus! Fondasi membaca sudah terbentuk kuat."; }
+            else { finalBand = "A1 (Level 1)"; }
             
             document.getElementById('cat-final-score').textContent = finalBand;
             document.getElementById('cat-final-desc').textContent = desc + ` (Skor Mentah: ${catScore})`;
         }
 
         // ==========================================
-        // 5. Fitur Bank Kosakata & Penyimpanan Permanen
+        // 5. Fitur Bank Kosakata & CSV
         // ==========================================
         document.getElementById('csvFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
