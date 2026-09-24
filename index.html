@@ -3,70 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOCFL Pro: Flashcard & Speaking</title>
+    <title>TOCFL Pro: Flashcard & CAT Exam</title>
     <style>
-        /* CSS Variables untuk Dark Mode */
         :root {
-            --bg-color: #f4f4f9;
-            --text-color: #222;
-            --card-bg: white;
-            --card-back: #e3f2fd;
-            --container-bg: #e9ecef;
-            --border-color: #ccc;
+            --bg-color: #f4f4f9; --text-color: #222;
+            --card-bg: white; --card-back: #e3f2fd;
+            --primary: #007bff; --success: #28a745; --danger: #dc3545; --warning: #ffc107;
+            --container-bg: #e9ecef; --border-color: #ccc;
         }
 
         .dark-mode {
-            --bg-color: #121212;
-            --text-color: #f4f4f9;
-            --card-bg: #2d2d2d;
-            --card-back: #1a365d;
-            --container-bg: #1e1e1e;
-            --border-color: #444;
+            --bg-color: #121212; --text-color: #f4f4f9;
+            --card-bg: #2d2d2d; --card-back: #1a365d;
+            --container-bg: #1e1e1e; --border-color: #444;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 15px;
+            font-family: Arial, sans-serif; text-align: center; background-color: var(--bg-color);
+            color: var(--text-color); margin: 0; padding: 0; padding-bottom: 70px;
             transition: background 0.3s, color 0.3s;
         }
 
-        .app-container { max-width: 400px; margin: auto; }
-
-        /* Header & Dark Mode Toggle */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .header h2 { margin: 0; font-size: 1.2rem; }
+        .app-container { max-width: 450px; margin: auto; padding: 15px; }
+        
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-top: 10px; }
         .theme-toggle { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-color); }
 
-        /* Statistik Panel */
-        .stats-panel {
-            background: var(--container-bg); padding: 10px; border-radius: 8px;
-            display: flex; justify-content: space-around; font-size: 0.85rem; margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        /* Tabs Navigation (Bottom Bar) */
+        .tab-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--container-bg);
+            display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border-color);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
         }
-        .stats-panel span { font-weight: bold; color: #007bff; }
+        .tab-btn {
+            background: none; border: none; font-size: 0.9rem; font-weight: bold;
+            color: var(--text-color); cursor: pointer; padding: 10px; opacity: 0.6;
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+        }
+        .tab-btn.active { opacity: 1; color: var(--primary); }
 
-        /* Upload & Filter */
-        .control-panel {
-            background: var(--container-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px;
-        }
-        .control-panel select, .control-panel input[type="file"] {
-            width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 10px; border-radius: 4px;
-        }
+        /* Tab Content */
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Timer Ujian */
-        .timer-container {
-            font-size: 1.2rem; font-weight: bold; color: #dc3545; margin: 10px 0;
-            display: flex; justify-content: center; align-items: center; gap: 10px;
-        }
+        /* Buttons & Inputs */
+        button { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-primary { background: var(--primary); }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+        .w-100 { width: 100%; margin-top: 10px; }
+        select, input[type="file"] { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; box-sizing: border-box; }
 
-        /* Flashcard */
-        .flashcard {
-            width: 300px; height: 200px; perspective: 1000px; cursor: pointer; margin: 10px auto; position: relative;
-        }
+        /* Flashcard Styles */
+        .flashcard { width: 300px; height: 200px; perspective: 1000px; cursor: pointer; margin: 15px auto; position: relative; }
         .front, .back {
             width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -76,143 +67,166 @@
         .back { transform: rotateY(180deg); background-color: var(--card-back); }
         .flashcard.flipped .front { transform: rotateY(180deg); }
         .flashcard.flipped .back { transform: rotateY(360deg); }
-
         #hanzi-text { font-size: 3.5rem; margin: 0; }
-        .hint { font-size: 0.8rem; color: #888; }
+        
+        /* CAT Exam Styles */
+        .cat-container { background: var(--container-bg); padding: 20px; border-radius: 12px; margin-top: 20px; }
+        .cat-question { font-size: 2.5rem; margin: 20px 0; font-weight: bold; }
+        .cat-options { display: flex; flex-direction: column; gap: 10px; }
+        .cat-option-btn { background: var(--card-bg); color: var(--text-color); border: 2px solid var(--border-color); padding: 15px; font-size: 1.1rem; border-radius: 8px; text-align: left; }
+        .cat-option-btn:hover { border-color: var(--primary); }
+        .cat-timer { font-size: 1.5rem; color: var(--danger); font-weight: bold; }
+        .cat-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
 
-        /* Tombol Anki (SRS) */
-        .srs-controls { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
-        .btn-srs { padding: 10px; flex: 1; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; }
-        .btn-hard { background-color: #dc3545; } /* Merah */
-        .btn-good { background-color: #ffc107; color: #222; } /* Kuning */
-        .btn-easy { background-color: #28a745; } /* Hijau */
-
-        /* Audio & Mic */
-        .speech-controls { background: var(--container-bg); padding: 15px; border-radius: 8px; margin: 15px auto; }
-        button { padding: 8px 12px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; }
-        .btn-mic.recording { background-color: #dc3545; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-        /* Canvas */
-        canvas { border: 2px dashed var(--border-color); background-color: var(--card-bg); border-radius: 8px; touch-action: none; }
-        hr { border: 0; border-top: 1px solid var(--border-color); margin: 20px 0; }
+        /* Bank Data Styles */
+        .bank-list { max-height: 400px; overflow-y: auto; background: var(--container-bg); border-radius: 8px; padding: 10px; text-align: left; margin-top: 15px; }
+        .bank-item { padding: 10px; border-bottom: 1px solid var(--border-color); }
+        .bank-item:last-child { border-bottom: none; }
+        .bank-hanzi { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        
-        <!-- Header -->
         <div class="header">
-            <h2>TOCFL B1 Pro</h2>
+            <h2>TOCFL Pro Master</h2>
             <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
         </div>
 
-        <!-- Statistik Harian -->
-        <div class="stats-panel">
-            <div>Diproses: <span id="stat-cards">0</span></div>
-            <div>Akurasi Suara: <span id="stat-acc">0%</span></div>
-        </div>
-
-        <!-- Panel Kontrol (Upload & Filter) -->
-        <div class="control-panel">
-            <label style="font-size: 0.85rem;">1. Upload CSV (Hanzi, Pinyin, Arti, Kategori):</label>
-            <input type="file" id="csvFileInput" accept=".csv">
-            
-            <label style="font-size: 0.85rem;">2. Pilih Kategori (Deck):</label>
-            <select id="categorySelect" onchange="filterCategory()">
-                <option value="Semua">Semua Kategori</option>
-            </select>
-            
-            <button onclick="resetData()" style="background: #6c757d; width: 100%; margin-top: 5px;">Hapus Memori (Reset)</button>
-        </div>
-
-        <!-- Timer & Flashcard -->
-        <div class="timer-container">
-            <input type="checkbox" id="quizModeToggle" onchange="toggleTimer()"> <label for="quizModeToggle" style="font-size: 0.9rem; color: var(--text-color);">Mode Ujian (15s)</label>
-            <span id="timer-display" style="display:none;">⏳ 15</span>
-        </div>
-
-        <div id="flashcard" class="flashcard" onclick="flipCard()">
-            <div class="front">
-                <h1 id="hanzi-text">漢字</h1>
-                <p class="hint">Klik untuk melihat arti</p>
+        <!-- TAB 1: FLASHCARD -->
+        <div id="tab-flashcard" class="tab-content active">
+            <div style="background: var(--container-bg); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                <label style="font-size: 0.9rem; font-weight: bold;">Pilih Deck (Kategori):</label>
+                <select id="categorySelect" onchange="filterCategory()">
+                    <option value="Semua">Semua Kategori</option>
+                </select>
             </div>
-            <div class="back">
-                <h2 id="pinyin-text">hànzì</h2>
-                <p id="arti-text">Karakter Mandarin</p>
-                <p id="cat-text" style="font-size: 0.75rem; color: #888;">Kategori</p>
+
+            <div id="flashcard" class="flashcard" onclick="flipCard()">
+                <div class="front">
+                    <h1 id="hanzi-text">漢字</h1>
+                    <p class="hint">Klik untuk melihat arti</p>
+                </div>
+                <div class="back">
+                    <h2 id="pinyin-text">hànzì</h2>
+                    <p id="arti-text">Karakter Mandarin</p>
+                    <p id="cat-text" style="font-size: 0.75rem; color: #888;"></p>
+                </div>
+            </div>
+
+            <div id="srs-buttons" style="display:none; justify-content: center; gap: 10px; margin-top: 15px;">
+                <button class="btn-danger" style="flex:1;" onclick="answerCard('sulit')">Sulit (Ulangi)</button>
+                <button class="btn-success" style="flex:1;" onclick="answerCard('mudah')">Mudah</button>
+            </div>
+            <div id="normal-buttons" style="margin-top: 15px;">
+                <button class="btn-primary w-100" onclick="flipCard()">Tampilkan Jawaban</button>
+            </div>
+            
+            <button class="w-100" style="background:#17a2b8; margin-top:15px;" onclick="playAudio()">🔊 Dengar Audio</button>
+        </div>
+
+        <!-- TAB 2: UJIAN CAT -->
+        <div id="tab-cat" class="tab-content">
+            <h3>Simulasi Ujian CAT</h3>
+            <p style="font-size:0.9rem;">Sistem akan menyesuaikan tingkat kesulitan soal berdasarkan jawaban Anda secara real-time.</p>
+            
+            <div id="cat-start-screen">
+                <button class="btn-primary w-100" style="padding:15px; font-size:1.1rem;" onclick="startCAT()">🚀 Mulai Ujian (15 Soal)</button>
+            </div>
+
+            <div id="cat-exam-screen" class="cat-container" style="display: none;">
+                <div class="cat-header">
+                    <span id="cat-progress">Soal 1/15</span>
+                    <span id="cat-timer" class="cat-timer">⏳ 15s</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--primary);" id="cat-level-indicator">Tingkat Kesulitan: Level 2</div>
+                
+                <div id="cat-question-display" class="cat-question">漢字</div>
+                <div id="cat-pinyin-display" style="color:#888; margin-bottom: 15px;">hànzì</div>
+                
+                <div class="cat-options" id="cat-options-container">
+                    <!-- Buttons generated via JS -->
+                </div>
+            </div>
+
+            <div id="cat-result-screen" class="cat-container" style="display: none;">
+                <h2>Ujian Selesai!</h2>
+                <h1 id="cat-final-score" style="color: var(--primary); font-size: 3rem; margin: 10px 0;">B1</h1>
+                <p id="cat-final-desc">Estimasi Level Kemampuan</p>
+                <button class="btn-primary w-100" onclick="document.getElementById('cat-start-screen').style.display='block'; document.getElementById('cat-result-screen').style.display='none';">Coba Lagi</button>
             </div>
         </div>
 
-        <!-- Tombol SRS (Spaced Repetition) -->
-        <div class="srs-controls" id="srs-buttons" style="display:none;">
-            <button class="btn-srs btn-hard" onclick="answerCard('sulit')">Sulit (Ulangi)</button>
-            <button class="btn-srs btn-good" onclick="answerCard('sedang')">Sedang</button>
-            <button class="btn-srs btn-easy" onclick="answerCard('mudah')">Mudah</button>
-        </div>
-        <!-- Tombol Normal (Jika kartu belum dibalik) -->
-        <div id="normal-buttons" style="margin-top: 15px;">
-            <button onclick="flipCard()" style="width: 100%; padding: 12px; font-size: 1rem;">Tampilkan Jawaban</button>
-        </div>
-
-        <!-- Speech Controls -->
-        <div class="speech-controls">
-            <button onclick="playAudio()" style="background:#17a2b8;">🔊 Dengar</button>
-            <button id="mic-btn" onclick="startSpeechRecognition()" style="background:#ff9800;">🎤 Ucapkan</button>
-            <p id="speech-result" style="margin-top: 10px; font-size: 0.9rem;">Teks terbaca: -</p>
-            <div id="score-text" style="font-weight: bold; color: #d9534f;">Skor: -</div>
+        <!-- TAB 3: BANK DATA -->
+        <div id="tab-bank" class="tab-content">
+            <h3>Bank Kosakata</h3>
+            <div style="background: var(--container-bg); padding: 15px; border-radius: 8px;">
+                <p style="font-size:0.85rem; margin-top:0;">File CSV yang diunggah akan otomatis <b>disimpan & digabungkan</b>.</p>
+                <input type="file" id="csvFileInput" accept=".csv">
+            </div>
+            
+            <h4 style="text-align: left; margin-bottom: 5px;">Data Tersimpan (<span id="bank-total">0</span> kata)</h4>
+            <div class="bank-list" id="bank-list-container">
+                <!-- Data List injected via JS -->
+            </div>
+            <button class="btn-danger w-100" style="margin-top: 15px;" onclick="clearBank()">🗑️ Hapus Seluruh Data</button>
         </div>
 
-        <hr>
+    </div>
 
-        <!-- Canvas -->
-        <div style="margin-bottom: 20px;">
-            <p style="font-weight: bold; font-size: 0.9rem;">Latihan Guratan Tangan:</p>
-            <canvas id="writingCanvas" width="300" height="300"></canvas>
-            <br>
-            <button onclick="clearCanvas()" style="background: #dc3545; margin-top: 10px;">Hapus Coretan</button>
-        </div>
-
+    <!-- BOTTOM NAVIGATION BAR -->
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('flashcard', this)">
+            <span>🎴</span><span>Flashcard</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('cat', this)">
+            <span>🎓</span><span>Ujian CAT</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('bank', this)">
+            <span>🗄️</span><span>Bank Data</span>
+        </button>
     </div>
 
     <script>
         // ==========================================
         // 1. Inisialisasi Data & Variabel
         // ==========================================
-        let fullVocab = [];
+        let fullVocab = JSON.parse(localStorage.getItem('tocflVocab')) || [];
         let activeDeck = [];
         let currentIndex = 0;
         let isFlipped = false;
-        
-        // Timer Variables
-        let timerInterval;
-        let timeLeft = 15;
-        let isQuizMode = false;
 
-        // Stats Variables
-        let today = new Date().toLocaleDateString();
-        let stats = JSON.parse(localStorage.getItem('tocflStats')) || { date: today, reviewed: 0, totalScore: 0, speechCount: 0 };
-        if(stats.date !== today) { stats = { date: today, reviewed: 0, totalScore: 0, speechCount: 0 }; }
-
-        // Data Default
-        const defaultVocab = [
-            {hanzi: "環境", pinyin: "huánjìng", arti: "lingkungan", kategori: "Default"},
-            {hanzi: "保護", pinyin: "bǎohù", arti: "melindungi", kategori: "Default"}
-        ];
-
-        // Load dari Local Storage
-        const savedData = localStorage.getItem('tocflVocab');
-        fullVocab = savedData ? JSON.parse(savedData) : [...defaultVocab];
+        // Default Data if empty
+        if(fullVocab.length === 0) {
+            fullVocab = [
+                {hanzi: "捷運", pinyin: "jiéyùn", arti: "MRT (N)", kategori: "Default"},
+                {hanzi: "遲到", pinyin: "chídào", arti: "Terlambat (Vp)", kategori: "Default"},
+                {hanzi: "請客", pinyin: "qǐngkè", arti: "Mentraktir (V-sep)", kategori: "Default"},
+                {hanzi: "圖書館", pinyin: "túshūguǎn", arti: "Perpustakaan (N)", kategori: "Default"}
+            ];
+            saveVocab();
+        }
 
         // ==========================================
-        // 2. Logika Kategori & Tampilan Awal
+        // 2. Navigasi Multi-Tab
+        // ==========================================
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            btn.classList.add('active');
+
+            if(tabId === 'bank') renderBank();
+            if(tabId === 'flashcard') filterCategory();
+        }
+
+        // ==========================================
+        // 3. Sistem Flashcard (SRS)
         // ==========================================
         function populateCategories() {
             const select = document.getElementById('categorySelect');
             select.innerHTML = '<option value="Semua">Semua Kategori</option>';
             let categories = [...new Set(fullVocab.map(item => item.kategori || "Umum"))];
-            
             categories.forEach(cat => {
                 let option = document.createElement('option');
                 option.value = cat; option.textContent = cat;
@@ -223,41 +237,22 @@
         function filterCategory() {
             const selectedCat = document.getElementById('categorySelect').value;
             activeDeck = selectedCat === "Semua" ? [...fullVocab] : fullVocab.filter(item => (item.kategori || "Umum") === selectedCat);
-            
-            // Acak urutan kartu setiap kali pilih kategori
-            activeDeck.sort(() => Math.random() - 0.5);
+            activeDeck.sort(() => Math.random() - 0.5); // Acak urutan
             currentIndex = 0;
-            if(activeDeck.length > 0) loadCard(currentIndex);
-            else alert("Kategori kosong!");
+            loadCard(currentIndex);
         }
 
-        // ==========================================
-        // 3. Logika Flashcard & Timer
-        // ==========================================
         function loadCard(index) {
             if(activeDeck.length === 0) return;
-            
             document.getElementById('hanzi-text').textContent = activeDeck[index].hanzi;
             document.getElementById('pinyin-text').textContent = activeDeck[index].pinyin;
             document.getElementById('arti-text').textContent = activeDeck[index].arti;
-            document.getElementById('cat-text').textContent = "Tag: " + (activeDeck[index].kategori || "Umum");
+            document.getElementById('cat-text').textContent = "Kategori: " + (activeDeck[index].kategori || "Umum");
             
-            if (isFlipped) {
-                isFlipped = false;
-                document.getElementById('flashcard').classList.remove('flipped');
-            }
-            
-            // Atur Visibilitas Tombol
+            isFlipped = false;
+            document.getElementById('flashcard').classList.remove('flipped');
             document.getElementById('srs-buttons').style.display = "none";
             document.getElementById('normal-buttons').style.display = "block";
-
-            // Reset UI Suara & Kanvas
-            document.getElementById('speech-result').textContent = "Teks terbaca: -";
-            document.getElementById('score-text').textContent = "Skor: -";
-            clearCanvas(); 
-
-            // Reset Timer jika Quiz Mode aktif
-            if(isQuizMode) startTimer();
         }
 
         function flipCard() {
@@ -266,62 +261,171 @@
                 document.getElementById('flashcard').classList.add('flipped');
                 document.getElementById('srs-buttons').style.display = "flex";
                 document.getElementById('normal-buttons').style.display = "none";
-                clearInterval(timerInterval); // Hentikan timer saat kartu dibalik
             }
         }
 
-        // Logika Timer Ujian
-        function toggleTimer() {
-            isQuizMode = document.getElementById('quizModeToggle').checked;
-            document.getElementById('timer-display').style.display = isQuizMode ? "inline-block" : "none";
-            if(isQuizMode) startTimer(); else clearInterval(timerInterval);
+        function answerCard(difficulty) {
+            if(difficulty === 'sulit') {
+                let card = activeDeck.splice(currentIndex, 1)[0];
+                activeDeck.splice(Math.min(currentIndex + 3, activeDeck.length), 0, card);
+            } else {
+                currentIndex++;
+            }
+            if(currentIndex >= activeDeck.length) {
+                alert("Hebat! Anda telah menyelesaikan deck ini.");
+                currentIndex = 0; activeDeck.sort(() => Math.random() - 0.5);
+            }
+            loadCard(currentIndex);
         }
 
-        function startTimer() {
-            clearInterval(timerInterval);
-            timeLeft = 15;
-            document.getElementById('timer-display').textContent = `⏳ ${timeLeft}s`;
+        function playAudio() {
+            if(activeDeck.length === 0) return;
+            let textToSpeak = activeDeck[currentIndex].hanzi;
+            if ('speechSynthesis' in window) {
+                let utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'zh-TW'; utterance.rate = 0.85;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // ==========================================
+        // 4. Sistem Ujian CAT (Mock Test Adaptif)
+        // ==========================================
+        let catQuestions = [];
+        let currentCatIndex = 0;
+        let catLevel = 2; 
+        let catScore = 0;
+        let catTimerInterval;
+        let timeLeft = 15;
+        let currentCorrectAnswer = "";
+
+        function startCAT() {
+            if(fullVocab.length < 5) return alert("Kosakata terlalu sedikit. Tambahkan minimal 5 kata di Bank Data.");
             
-            timerInterval = setInterval(() => {
+            document.getElementById('cat-start-screen').style.display = "none";
+            document.getElementById('cat-result-screen').style.display = "none";
+            document.getElementById('cat-exam-screen').style.display = "block";
+            
+            catQuestions = [...fullVocab].sort(() => Math.random() - 0.5).slice(0, 15);
+            currentCatIndex = 0;
+            catLevel = 2;
+            catScore = 0;
+            
+            loadCatQuestion();
+        }
+
+        function loadCatQuestion() {
+            if(currentCatIndex >= catQuestions.length) return finishCAT();
+
+            document.getElementById('cat-progress').textContent = `Soal ${currentCatIndex + 1} / 15`;
+            document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level ${catLevel}`;
+            
+            let targetWord = catQuestions[currentCatIndex];
+            let questionText = "";
+            let pinyinText = "";
+            let options = [];
+
+            if(catLevel === 1) {
+                questionText = targetWord.hanzi;
+                pinyinText = targetWord.pinyin;
+                currentCorrectAnswer = targetWord.arti;
+                options = generateOptions(targetWord.arti, 'arti');
+            } 
+            else if (catLevel === 2) {
+                questionText = targetWord.hanzi;
+                pinyinText = "---";
+                currentCorrectAnswer = targetWord.arti;
+                options = generateOptions(targetWord.arti, 'arti');
+            } 
+            else {
+                questionText = targetWord.arti;
+                pinyinText = "---";
+                currentCorrectAnswer = targetWord.hanzi;
+                options = generateOptions(targetWord.hanzi, 'hanzi');
+            }
+
+            document.getElementById('cat-question-display').textContent = questionText;
+            document.getElementById('cat-pinyin-display').textContent = pinyinText;
+
+            const optContainer = document.getElementById('cat-options-container');
+            optContainer.innerHTML = "";
+            options.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = "cat-option-btn";
+                btn.textContent = opt;
+                btn.onclick = () => submitCatAnswer(opt, btn);
+                optContainer.appendChild(btn);
+            });
+
+            startCatTimer();
+        }
+
+        function generateOptions(correctStr, keyType) {
+            let opts = [correctStr];
+            let pool = [...fullVocab].sort(() => Math.random() - 0.5);
+            for(let w of pool) {
+                if(opts.length >= 4) break;
+                if(w[keyType] !== correctStr && !opts.includes(w[keyType])) opts.push(w[keyType]);
+            }
+            return opts.sort(() => Math.random() - 0.5);
+        }
+
+        function startCatTimer() {
+            clearInterval(catTimerInterval);
+            timeLeft = 15;
+            document.getElementById('cat-timer').textContent = `⏳ ${timeLeft}s`;
+            
+            catTimerInterval = setInterval(() => {
                 timeLeft--;
-                document.getElementById('timer-display').textContent = `⏳ ${timeLeft}s`;
+                document.getElementById('cat-timer').textContent = `⏳ ${timeLeft}s`;
                 if(timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    flipCard(); // Paksa buka kartu
-                    // Opsional: mainkan suara 'tettt' waktu habis disini
+                    clearInterval(catTimerInterval);
+                    submitCatAnswer("TIMEOUT", null); 
                 }
             }, 1000);
         }
 
-        // ==========================================
-        // 4. Logika Spaced Repetition (SRS)
-        // ==========================================
-        function answerCard(difficulty) {
-            updateStatsCard(); // Tambah hitungan kartu harian
+        function submitCatAnswer(selectedStr, btnElement) {
+            clearInterval(catTimerInterval);
+            
+            document.querySelectorAll('.cat-option-btn').forEach(b => b.disabled = true);
 
-            let currentCard = activeDeck[currentIndex];
-
-            if(difficulty === 'sulit') {
-                // Masukkan kembali ke bagian agak belakang dari antrean
-                activeDeck.splice(currentIndex, 1);
-                activeDeck.splice(Math.min(currentIndex + 3, activeDeck.length), 0, currentCard);
-                // Index tidak ditambah karena kartu saat ini sudah digeser
+            if(selectedStr === currentCorrectAnswer) {
+                if(btnElement) {
+                    btnElement.style.backgroundColor = "#28a745"; 
+                    btnElement.style.color = "white";
+                }
+                catScore += catLevel; 
+                catLevel = Math.min(3, catLevel + 1); 
             } else {
-                // Lanjut ke kartu berikutnya
-                currentIndex++;
+                if(btnElement) {
+                    btnElement.style.backgroundColor = "#dc3545"; 
+                    btnElement.style.color = "white";
+                }
+                catLevel = Math.max(1, catLevel - 1); 
             }
 
-            if(currentIndex >= activeDeck.length) {
-                alert("Sesi selesai untuk kategori ini!");
-                currentIndex = 0;
-                activeDeck.sort(() => Math.random() - 0.5); // Acak ulang
-            }
+            currentCatIndex++;
+            setTimeout(loadCatQuestion, 800); 
+        }
 
-            loadCard(currentIndex);
+        function finishCAT() {
+            document.getElementById('cat-exam-screen').style.display = "none";
+            document.getElementById('cat-result-screen').style.display = "block";
+            
+            let finalBand = "A1";
+            let desc = "Perlu banyak berlatih mengenali karakter.";
+            
+            if(catScore >= 35) { finalBand = "B2 (Level 4)"; desc = "Luar Biasa! Anda siap membaca koran Taiwan."; }
+            else if(catScore >= 25) { finalBand = "B1 (Level 3)"; desc = "Sangat Bagus! Memenuhi syarat masuk Universitas."; }
+            else if(catScore >= 15) { finalBand = "A2 (Level 2)"; desc = "Bagus! Fondasi membaca sudah terbentuk kokoh."; }
+            
+            document.getElementById('cat-final-score').textContent = finalBand;
+            document.getElementById('cat-final-desc').textContent = desc + ` (Skor Mentah: ${catScore})`;
         }
 
         // ==========================================
-        // 5. Fitur CSV Upload (Mendukung 4 Kolom)
+        // 5. Fitur Bank Kosakata & Penyimpanan Permanen
         // ==========================================
         document.getElementById('csvFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -333,148 +437,85 @@
 
         function parseCSV(text) {
             const lines = text.split('\n');
-            let newVocab = [];
+            let addedCount = 0;
+            
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue; 
-                const columns = line.split(/[;,]/); // Dukung koma & titik koma
+                const columns = line.split(/[;,]/); 
                 
                 if (columns.length >= 3) {
-                    if (columns[0].toLowerCase().includes('hanzi')) continue;
-                    newVocab.push({
-                        hanzi: columns[0].trim(),
-                        pinyin: columns[1].trim(),
-                        arti: columns[2].trim(),
-                        kategori: columns.length >= 4 ? columns[3].trim() : "Kosakata Baru"
-                    });
+                    if (columns[0].toLowerCase().includes('hanzi')) continue; 
+                    
+                    let newHanzi = columns[0].trim();
+                    if(!fullVocab.some(item => item.hanzi === newHanzi)) {
+                        fullVocab.push({
+                            hanzi: newHanzi,
+                            pinyin: columns[1].trim(),
+                            arti: columns[2].trim(),
+                            kategori: columns.length >= 4 ? columns[3].trim() : "Kosakata Baru"
+                        });
+                        addedCount++;
+                    }
                 }
             }
 
-            if (newVocab.length > 0) {
-                // Gabungkan atau Timpa (Disini kita Timpa agar bersih)
-                fullVocab = newVocab; 
-                localStorage.setItem('tocflVocab', JSON.stringify(fullVocab));
+            if (addedCount > 0) {
+                saveVocab();
                 populateCategories();
-                filterCategory(); // Otomatis load
-                alert(`Berhasil memuat ${fullVocab.length} kosa kata baru!`);
+                filterCategory(); 
+                renderBank(); 
+                alert(`Berhasil menambahkan ${addedCount} kosa kata baru ke Bank Data!`);
+            } else {
+                alert("Tidak ada kata baru. Mungkin kata-kata tersebut sudah ada di Bank.");
+            }
+            document.getElementById('csvFileInput').value = ""; 
+        }
+
+        function saveVocab() {
+            localStorage.setItem('tocflVocab', JSON.stringify(fullVocab));
+        }
+
+        function clearBank() {
+            if(confirm("Yakin ingin MENGHAPUS SEMUA kosakata dari aplikasi?")) {
+                fullVocab = [];
+                saveVocab();
+                populateCategories();
+                renderBank();
+                alert("Semua data berhasil dihapus.");
             }
         }
 
-        function resetData() {
-            if (confirm("Reset ke data bawaan?")) {
-                localStorage.removeItem('tocflVocab');
-                fullVocab = [...defaultVocab];
-                populateCategories(); filterCategory();
-            }
-        }
-
-        // ==========================================
-        // 6. Speaking & Listening API
-        // ==========================================
-        function playAudio() {
-            if(activeDeck.length === 0) return;
-            const textToSpeak = activeDeck[currentIndex].hanzi;
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(textToSpeak);
-                utterance.lang = 'zh-TW'; utterance.rate = 0.85;
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        function startSpeechRecognition() {
-            if (!SpeechRecognition) return alert("Gunakan Google Chrome.");
-            const micBtn = document.getElementById('mic-btn');
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'zh-TW'; recognition.interimResults = false;
-
-            recognition.onstart = function() { micBtn.classList.add("recording"); micBtn.textContent = "🎙️..."; };
-            recognition.onspeechend = function() { recognition.stop(); };
+        function renderBank() {
+            document.getElementById('bank-total').textContent = fullVocab.length;
+            const container = document.getElementById('bank-list-container');
+            container.innerHTML = "";
             
-            recognition.onresult = function(event) {
-                micBtn.classList.remove("recording"); micBtn.textContent = "🎤 Ucapkan";
-                let spokenText = event.results[0][0].transcript.replace(/[.,!?，。！？]/g, '');
-                let targetText = activeDeck[currentIndex].hanzi;
-                
-                document.getElementById('speech-result').textContent = `Anda bilang: "${spokenText}"`;
-                
-                let matches = 0; let tempSpoken = spokenText;
-                for (let char of targetText) {
-                    if (tempSpoken.includes(char)) { matches++; tempSpoken = tempSpoken.replace(char, ''); }
-                }
-                const score = Math.round((matches / targetText.length) * 100);
-                
-                let sText = document.getElementById('score-text');
-                sText.textContent = `Skor Kesesuaian: ${score}%`;
-                sText.style.color = score === 100 ? "#28a745" : (score >= 50 ? "#ff9800" : "#dc3545");
-                
-                updateStatsScore(score); // Update statistik rata-rata
-            };
-            
-            recognition.onerror = function() { micBtn.classList.remove("recording"); micBtn.textContent = "🎤 Ucapkan"; };
-            recognition.start();
+            fullVocab.forEach(item => {
+                let div = document.createElement('div');
+                div.className = "bank-item";
+                div.innerHTML = `
+                    <div class="bank-hanzi">${item.hanzi}</div>
+                    <div style="font-size:0.9rem; color:#666;">${item.pinyin} | ${item.arti}</div>
+                    <div style="font-size:0.8rem; background:#e9ecef; display:inline-block; padding:2px 5px; border-radius:3px; margin-top:3px;">${item.kategori}</div>
+                `;
+                container.appendChild(div);
+            });
         }
 
         // ==========================================
-        // 7. Dark Mode & Statistik Harian
+        // 6. Mode Gelap
         // ==========================================
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('tocflTheme', isDark ? 'dark' : 'light');
+            localStorage.setItem('tocflTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
         }
-
-        // Load Theme Memory
         if(localStorage.getItem('tocflTheme') === 'dark') document.body.classList.add('dark-mode');
 
-        function updateStatsCard() {
-            stats.reviewed++; saveStats();
-        }
-        function updateStatsScore(score) {
-            stats.speechCount++; stats.totalScore += score; saveStats();
-        }
-        function saveStats() {
-            localStorage.setItem('tocflStats', JSON.stringify(stats));
-            renderStats();
-        }
-        function renderStats() {
-            document.getElementById('stat-cards').textContent = stats.reviewed;
-            let avg = stats.speechCount === 0 ? 0 : Math.round(stats.totalScore / stats.speechCount);
-            document.getElementById('stat-acc').textContent = avg + "%";
-        }
-
-        // ==========================================
-        // 8. Kanvas Menulis (Tidak Berubah)
-        // ==========================================
-        const canvas = document.getElementById('writingCanvas');
-        const ctx = canvas.getContext('2d');
-        let isDrawing = false;
-        ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.strokeStyle = "#888";
-
-        function draw(e) {
-            if (!isDrawing) return; e.preventDefault(); 
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
-            ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
-        }
-        canvas.addEventListener('mousedown', (e) => { isDrawing = true; draw(e); });
-        canvas.addEventListener('mouseup', () => { isDrawing = false; ctx.beginPath(); });
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseout', () => { isDrawing = false; ctx.beginPath(); });
-        canvas.addEventListener('touchstart', (e) => { isDrawing = true; draw(e); }, {passive: false});
-        canvas.addEventListener('touchend', () => { isDrawing = false; ctx.beginPath(); });
-        canvas.addEventListener('touchmove', draw, {passive: false});
-
-        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-
-        // ==========================================
         // INIT
-        // ==========================================
         populateCategories();
         filterCategory();
-        renderStats();
-
+        renderBank();
     </script>
 </body>
 </html>
