@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOCFL Pro: Flashcard & CAT Exam</title>
+    <title>TOCFL Pro: B1 Master</title>
     <style>
         :root {
             --bg-color: #f4f4f9; --text-color: #222;
@@ -52,21 +52,22 @@
         .w-100 { width: 100%; margin-top: 10px; }
         select, input[type="file"] { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; box-sizing: border-box; }
 
-        .flashcard { width: 300px; height: 200px; perspective: 1000px; cursor: pointer; margin: 15px auto; position: relative; }
+        .flashcard { width: 300px; height: 230px; perspective: 1000px; cursor: pointer; margin: 15px auto; position: relative; }
         .front, .back {
             width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             border: 2px solid var(--border-color); border-radius: 12px;
             transition: transform 0.6s; background-color: var(--card-bg); box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 15px; box-sizing: border-box;
         }
         .back { transform: rotateY(180deg); background-color: var(--card-back); }
         .flashcard.flipped .front { transform: rotateY(180deg); }
         .flashcard.flipped .back { transform: rotateY(360deg); }
-        #hanzi-text { font-size: 3.5rem; margin: 0; }
+        #hanzi-text { font-size: 3.5rem; margin: 0; transition: font-size 0.3s; }
         
         .cat-container { background: var(--container-bg); padding: 20px; border-radius: 12px; margin-top: 20px; }
         .cat-question { font-size: 2.5rem; margin: 20px 0; font-weight: bold; transition: all 0.3s; }
-        .cat-question.long-text { font-size: 1.3rem; text-align: left; line-height: 1.6; }
+        .cat-question.long-text { font-size: 1.1rem; text-align: left; line-height: 1.6; }
         .cat-options { display: flex; flex-direction: column; gap: 10px; }
         .cat-option-btn { background: var(--card-bg); color: var(--text-color); border: 2px solid var(--border-color); padding: 15px; font-size: 1.1rem; border-radius: 8px; text-align: left; }
         .cat-option-btn:hover { border-color: var(--primary); }
@@ -78,43 +79,49 @@
         .bank-item:last-child { border-bottom: none; }
         .bank-hanzi { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
 
-        /* Review Styles */
         .review-item { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 10px; text-align: left; }
         .review-correct { border-color: var(--success); }
         .review-wrong { border-color: var(--danger); }
-        .review-q { font-weight: bold; margin-bottom: 8px; font-size: 1.1rem; }
+        .review-q { font-weight: bold; margin-bottom: 8px; font-size: 1.05rem; }
         .review-explanation { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; font-size: 0.9rem; margin-top: 10px; border-left: 4px solid #ffeeba; }
         .dark-mode .review-explanation { background: #332b00; color: #ffeb8a; border-left-color: #ffc107; }
         .badge-status { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: white; margin-bottom: 5px; }
         .badge-benar { background: var(--success); }
         .badge-salah { background: var(--danger); }
+        
+        .toggle-container { margin-top:10px; display:flex; align-items:center; justify-content:center; gap:10px; font-weight:bold; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <div class="header">
-            <h2>TOCFL Pro Master</h2>
+            <h2>TOCFL Pro: B1</h2>
             <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
         </div>
 
         <!-- TAB 1: FLASHCARD -->
         <div id="tab-flashcard" class="tab-content active">
             <div style="background: var(--container-bg); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                <label style="font-size: 0.9rem; font-weight: bold;">Pilih Deck (Kategori):</label>
+                <label style="font-size: 0.9rem; font-weight: bold;">Pilih Deck:</label>
                 <select id="categorySelect" onchange="filterCategory()">
                     <option value="Semua">Semua Kategori</option>
                 </select>
+                
+                <div class="toggle-container">
+                    <input type="checkbox" id="modeKalimatToggle" onchange="loadCard(currentIndex)"> 
+                    <label for="modeKalimatToggle" style="color:var(--primary);">Mode Kalimat Rumpang (B1)</label>
+                </div>
             </div>
 
             <div id="flashcard" class="flashcard" onclick="flipCard()">
                 <div class="front">
                     <h1 id="hanzi-text">漢字</h1>
-                    <p class="hint">Klik untuk melihat arti</p>
+                    <p class="hint">Klik untuk membalik</p>
                 </div>
                 <div class="back">
                     <h2 id="pinyin-text">hànzì</h2>
-                    <p id="arti-text">Karakter Mandarin</p>
+                    <p id="arti-text" style="font-weight:bold; font-size:1.2rem;">Karakter Mandarin</p>
                     <p id="cat-text" style="font-size: 0.75rem; color: #888;"></p>
                 </div>
             </div>
@@ -124,19 +131,19 @@
                 <button class="btn-success" style="flex:1;" onclick="answerCard('mudah')">Mudah</button>
             </div>
             <div id="normal-buttons" style="margin-top: 15px;">
-                <button class="btn-primary w-100" onclick="flipCard()">Tampilkan Jawaban</button>
+                <button class="btn-primary w-100" onclick="flipCard()">Balik Kartu</button>
             </div>
             
             <button class="w-100" style="background:#17a2b8; margin-top:15px;" onclick="playAudio()">🔊 Dengar Audio</button>
         </div>
 
-        <!-- TAB 2: UJIAN CAT -->
+        <!-- TAB 2: UJIAN CAT B1 -->
         <div id="tab-cat" class="tab-content">
-            <h3>Simulasi Ujian CAT</h3>
-            <p style="font-size:0.9rem;">Dilengkapi fitur koreksi otomatis di akhir ujian.</p>
+            <h3>Simulasi CAT B1</h3>
+            <p style="font-size:0.85rem;">Level 1: Kosakata. Level 2: Kalimat Rumpang. Level 3: Bacaan Paragraf Panjang.</p>
             
             <div id="cat-start-screen">
-                <button class="btn-primary w-100" style="padding:15px; font-size:1.1rem;" onclick="startCAT()">🚀 Mulai Ujian</button>
+                <button class="btn-primary w-100" style="padding:15px; font-size:1.1rem;" onclick="startCAT()">🚀 Mulai Ujian (B1)</button>
             </div>
 
             <div id="cat-exam-screen" class="cat-container" style="display: none;">
@@ -160,13 +167,12 @@
                 <p id="cat-final-desc" style="font-weight:bold;">Estimasi Level Kemampuan</p>
                 <div id="cat-motivation" style="font-size:0.95rem; line-height:1.5; margin:15px 0; text-align:left; background:var(--card-bg); padding:15px; border-radius:8px; border-left: 4px solid var(--primary);"></div>
                 
-                <button class="btn-success w-100" style="margin-bottom:10px;" onclick="showReview()">📝 Lihat Pembahasan Soal</button>
+                <button class="btn-success w-100" style="margin-bottom:10px;" onclick="showReview()">📝 Lihat Pembahasan B1</button>
                 <button class="btn-primary w-100" onclick="document.getElementById('cat-start-screen').style.display='block'; document.getElementById('cat-result-screen').style.display='none';">🔄 Coba Lagi</button>
             </div>
 
-            <!-- TAB REVIEW PEMBAHASAN (Tampil setelah klik tombol di result) -->
             <div id="cat-review-screen" class="cat-container" style="display: none;">
-                <h3 style="margin-top:0;">Koreksi & Pembahasan</h3>
+                <h3 style="margin-top:0;">Pembahasan Analitis</h3>
                 <div id="review-list-container" class="review-list" style="max-height: 60vh;">
                     <!-- Diisi lewat JS -->
                 </div>
@@ -183,9 +189,7 @@
             </div>
             
             <h4 style="text-align: left; margin-bottom: 5px;">Data Tersimpan (<span id="bank-total">0</span> kata)</h4>
-            <div class="bank-list" id="bank-list-container">
-                <!-- Data List injected via JS -->
-            </div>
+            <div class="bank-list" id="bank-list-container"></div>
             <button class="btn-danger w-100" style="margin-top: 15px;" onclick="clearBank()">🗑️ Hapus Seluruh Data</button>
         </div>
 
@@ -212,42 +216,48 @@
         let currentIndex = 0;
         let isFlipped = false;
 
+        // DB Kalimat Rumpang (Level 2)
         const sentenceDB = {
-            "上": "桌子 ＿＿＿ 有一本很厚的書，你可以幫我拿過來嗎？",
-            "下": "我的貓非常怕冷，所以冬天的時候牠喜歡躲在沙發 ＿＿＿ 睡覺。",
-            "外": "今天 ＿＿＿ 面正在下大雨，你出門的時候一定要記得帶傘。",
-            "前": "我們學校的 ＿＿＿ 面新開了一家早餐店，三明治非常好吃。",
-            "後": "如果你找不到洗手間，它就在那家便利商店的 ＿＿＿ 面。",
-            "裡": "冰箱 ＿＿＿ 已經沒有水果和蔬菜了，我們下午去超市買一些吧。",
-            "裡/裏": "冰箱 ＿＿＿ 已經沒有水果和蔬菜了，我們下午去超市買一些吧。",
-            "地方": "這個 ＿＿＿ 的風景非常漂亮，週末有很多年輕人來這裡拍照。",
-            "帶": "明天去爬山的時候，除了水，也要記得 ＿＿＿ 一件保暖的外套。",
-            "拿": "我現在手很髒，你可以幫我從包包裡 ＿＿＿ 出我的手機嗎？",
-            "快": "你走得太 ＿＿＿ 了，我的腳很痛，沒有辦法跟上你。",
-            "慢": "週末不用去學校的時候，我喜歡 ＿＿＿ 慢地喝咖啡、看小說。",
-            "站": "公車上的人真的太多了，沒有位子坐，我只好一直 ＿＿＿ 著。",
-            "計程車": "晚上的雨下得太大了，我們還是不要走路，直接搭 ＿＿＿ 回家吧。",
-            "火車": "從台北搭 ＿＿＿ 到花蓮大約需要兩個小時，一路上可以看風景。",
-            "出": "他剛 ＿＿＿ 門不到五分鐘，你就打電話來找他了。",
-            "手": "為了健康，吃飯以前一定要記得先把 ＿＿＿ 洗乾淨。",
-            "身體": "你最近每天都加班到半夜，要多注意 ＿＿＿，不要太累了。",
-            "藥": "醫生特別交代，這個 ＿＿＿ 一天要吃三次，吃完飯以後吃最好。",
-            "生病": "小明昨天晚上沒有穿外套就出門，結果今天早上就 ＿＿＿ 了。",
-            "餓": "現在已經下午三點了，我都還沒吃午餐，肚子覺得非常 ＿＿＿。",
-            "鞋子": "進入這間日式餐廳以前，請大家先把 ＿＿＿ 脫在外面。",
-            "痛": "昨天晚上睡覺的姿勢不對，今天早上起床覺得脖子非常 ＿＿＿。",
-            "累": "在飯店打工站了一整天，現在覺得整個人非常 ＿＿＿，只想睡覺。",
-            "看病": "你一直咳嗽發燒，還是跟老闆請假去醫院 ＿＿＿ 比較安全。",
-            "捷運": "在台北市區，搭 ＿＿＿ 買東西或找朋友是最方便的交通方式。"
+            "提高": "為了 ＿＿＿ 聽力，老師推薦我們每天聽外文歌。",
+            "通知": "突然收到公司的 ＿＿＿，下個月要派我去外國工作。",
+            "推薦": "這家飯店的服務很好，我非常 ＿＿＿ 你們來住。",
+            "派對": "下個週末是我的生日，我要舉辦一個 ＿＿＿，你要來嗎？",
+            "保護": "出門的時候要戴口罩，這樣才能 ＿＿＿ 自己的健康。",
+            "傳統": "除夕和春節是華人社會中非常重要的 ＿＿＿ 節日。",
+            "開玩笑": "他剛才說的話只是在 ＿＿＿，你不要太生氣。",
+            "上": "桌子 ＿＿＿ 有一本很厚的課本，你可以幫我拿嗎？",
+            "藥": "醫生特別交代，這個 ＿＿＿ 一天要吃三次。",
+            "生病": "小明昨天沒有穿外套就出門，結果今天早上就 ＿＿＿ 了。",
+            "捷運": "在台北市區，搭 ＿＿＿ 是最方便的交通方式。",
+            "雖然": "＿＿＿ 學習外語很累，但是對未來的計畫很有幫助。",
+            "只要": "＿＿＿ 你每天練習，你的中文成績一定會進步。",
+            "因為": "＿＿＿ 天氣變冷了，所以我們決定不去游泳。"
         };
 
-        if(fullVocab.length === 0) {
-            fullVocab = [
-                {hanzi: "捷運", pinyin: "jiéyùn", arti: "MRT (N)", kategori: "Default"},
-                {hanzi: "遲到", pinyin: "chídào", arti: "Terlambat (Vp)", kategori: "Default"}
-            ];
-            saveVocab();
-        }
+        // DB Paragraf B1 (Level 3 - Ekstensif)
+        const paragraphDB = [
+            {
+                text: "歡迎來到東南大飯店。我們飯店有免費的游泳池和溫泉。如果您需要計程車，請告訴櫃台。",
+                question: "這家飯店「沒有」提供什麼？",
+                options: ["免費晚餐", "游泳池", "溫泉", "叫計程車的服務"],
+                correct: "免費晚餐",
+                explanation: "Teks menyebutkan kolam renang (游泳池), air panas (溫泉), dan layanan taksi (計程車). Tidak ada informasi mengenai makan malam gratis (免費晚餐)."
+            },
+            {
+                text: "為了提高語言能力，小明決定明年去台灣讀書。他平常在家都會看外文課本，也常聽中文流行音樂，所以他的聽力進步得很快。",
+                question: "小明為什麼聽力進步很快？",
+                options: ["因為他常聽中文音樂", "因為他常去台灣", "因為他每天去上課", "因為他有很多台灣朋友"],
+                correct: "因為他常聽中文音樂",
+                explanation: "Terdapat kalimat '也常聽中文流行音樂，所以他的聽力進步得很快' (juga sering mendengar musik pop Mandarin, jadi listeningnya maju pesat)."
+            },
+            {
+                text: "今天的天氣突然變得很冷，而且還下大雨。王先生出門的時候忘了帶傘，所以感冒了。他現在覺得頭很痛，必須去醫院看病。",
+                question: "王先生現在怎麼了？",
+                options: ["他的身體不舒服", "他的傘丟了", "他在醫院工作", "他的老闆生病了"],
+                correct: "他的身體不舒服",
+                explanation: "Teks menyebutkan dia flu (感冒了) dan sakit kepala (頭很痛), yang disimpulkan menjadi badannya tidak enak/sakit (身體不舒服)."
+            }
+        ];
 
         // ==========================================
         // 2. Navigasi
@@ -262,7 +272,7 @@
         }
 
         // ==========================================
-        // 3. Flashcard SRS
+        // 3. Flashcard SRS (Mode B1)
         // ==========================================
         function populateCategories() {
             const select = document.getElementById('categorySelect');
@@ -285,10 +295,25 @@
 
         function loadCard(index) {
             if(activeDeck.length === 0) return;
-            document.getElementById('hanzi-text').textContent = activeDeck[index].hanzi;
-            document.getElementById('pinyin-text').textContent = activeDeck[index].pinyin;
-            document.getElementById('arti-text').textContent = activeDeck[index].arti;
-            document.getElementById('cat-text').textContent = "Kategori: " + (activeDeck[index].kategori || "Umum");
+            
+            let word = activeDeck[index];
+            let cleanHanzi = word.hanzi.replace(/\(.*\)/g, "");
+            let sentence = sentenceDB[cleanHanzi];
+            let isSentenceMode = document.getElementById('modeKalimatToggle').checked && sentence;
+
+            if(isSentenceMode) {
+                document.getElementById('hanzi-text').textContent = sentence;
+                document.getElementById('hanzi-text').style.fontSize = "1.5rem";
+                document.getElementById('pinyin-text').textContent = word.hanzi + " (" + word.pinyin + ")";
+                document.getElementById('arti-text').textContent = word.arti;
+            } else {
+                document.getElementById('hanzi-text').textContent = word.hanzi;
+                document.getElementById('hanzi-text').style.fontSize = "3.5rem";
+                document.getElementById('pinyin-text').textContent = word.pinyin;
+                document.getElementById('arti-text').textContent = word.arti;
+            }
+            
+            document.getElementById('cat-text').textContent = "Kategori: " + (word.kategori || "Umum");
             isFlipped = false;
             document.getElementById('flashcard').classList.remove('flipped');
             document.getElementById('srs-buttons').style.display = "none";
@@ -327,7 +352,7 @@
         }
 
         // ==========================================
-        // 4. Sistem Ujian CAT + Perekam Sejarah (Review)
+        // 4. Sistem CAT (Level 1, 2, 3 Paragraf)
         // ==========================================
         let catQuestions = [];
         let currentCatIndex = 0;
@@ -337,7 +362,7 @@
         let timeLeft = 15;
         let currentCorrectAnswer = "";
         let testLength = 0; 
-        let examHistory = []; // Perekam jawaban
+        let examHistory = []; 
 
         function startCAT() {
             if(fullVocab.length < 5) return alert("Tambahkan minimal 5 kata di Bank Data.");
@@ -347,285 +372,10 @@
             document.getElementById('cat-review-screen').style.display = "none";
             document.getElementById('cat-exam-screen').style.display = "block";
             
-            examHistory = []; // Reset riwayat
+            examHistory = []; 
             let uniqueVocabMap = new Map();
             fullVocab.forEach(item => uniqueVocabMap.set(item.hanzi, item));
             let uniqueVocab = Array.from(uniqueVocabMap.values());
             
             let shuffled = uniqueVocab.sort(() => Math.random() - 0.5);
-            testLength = Math.min(50, shuffled.length);
-            catQuestions = shuffled.slice(0, testLength);
-
-            currentCatIndex = 0;
-            catLevel = 1;
-            catScore = 0;
-            
-            loadCatQuestion();
-        }
-
-        function loadCatQuestion() {
-            if(currentCatIndex >= catQuestions.length) return finishCAT();
-
-            document.getElementById('cat-progress').textContent = `Soal ${currentCatIndex + 1} / ${testLength}`;
-            
-            let targetWord = catQuestions[currentCatIndex];
-            let questionText = "";
-            let pinyinText = "";
-            let options = [];
-            let displayTime = 15;
-
-            const qDisplay = document.getElementById('cat-question-display');
-            qDisplay.classList.remove('long-text'); 
-
-            let cleanHanzi = targetWord.hanzi.replace(/\(.*\)/g, ""); 
-            let hasLongSentence = sentenceDB[cleanHanzi] !== undefined;
-
-            if (catLevel >= 3 && hasLongSentence) {
-                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 3 (Kalimat Panjang)`;
-                questionText = sentenceDB[cleanHanzi];
-                pinyinText = "💡 Pilih Hanzi yang tepat untuk mengisi bagian yang kosong.";
-                currentCorrectAnswer = targetWord.hanzi;
-                options = generateOptions(targetWord.hanzi, 'hanzi');
-                qDisplay.classList.add('long-text');
-                displayTime = 60; 
-            } 
-            else if (catLevel >= 2) {
-                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 2`;
-                questionText = targetWord.hanzi;
-                pinyinText = "---";
-                currentCorrectAnswer = targetWord.arti;
-                options = generateOptions(targetWord.arti, 'arti');
-            }
-            else {
-                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 1`;
-                questionText = targetWord.hanzi;
-                pinyinText = targetWord.pinyin;
-                currentCorrectAnswer = targetWord.arti;
-                options = generateOptions(targetWord.arti, 'arti');
-            }
-
-            document.getElementById('cat-question-display').textContent = questionText;
-            document.getElementById('cat-pinyin-display').textContent = pinyinText;
-
-            const optContainer = document.getElementById('cat-options-container');
-            optContainer.innerHTML = "";
-            options.forEach(opt => {
-                let btn = document.createElement('button');
-                btn.className = "cat-option-btn";
-                btn.textContent = opt;
-                btn.onclick = () => submitCatAnswer(opt, btn, questionText, catLevel, targetWord);
-                optContainer.appendChild(btn);
-            });
-
-            startCatTimer(displayTime, questionText, catLevel, targetWord);
-        }
-
-        function generateOptions(correctStr, keyType) {
-            let opts = [correctStr];
-            let pool = [...fullVocab].sort(() => Math.random() - 0.5);
-            for(let w of pool) {
-                if(opts.length >= 4) break;
-                if(w[keyType] !== correctStr && !opts.includes(w[keyType])) opts.push(w[keyType]);
-            }
-            return opts.sort(() => Math.random() - 0.5);
-        }
-
-        function startCatTimer(seconds, qText, lvl, wordObj) {
-            clearInterval(catTimerInterval);
-            timeLeft = seconds;
-            document.getElementById('cat-timer').textContent = `⏳ ${timeLeft}s`;
-            
-            catTimerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('cat-timer').textContent = `⏳ ${timeLeft}s`;
-                if(timeLeft <= 0) {
-                    clearInterval(catTimerInterval);
-                    submitCatAnswer("TIMEOUT (Waktu Habis)", null, qText, lvl, wordObj); 
-                }
-            }, 1000);
-        }
-
-        function submitCatAnswer(selectedStr, btnElement, qText, lvl, wordObj) {
-            clearInterval(catTimerInterval);
-            document.querySelectorAll('.cat-option-btn').forEach(b => b.disabled = true);
-
-            let isCorrect = (selectedStr === currentCorrectAnswer);
-
-            // Simpan riwayat jawaban untuk direview nanti
-            examHistory.push({
-                question: qText,
-                level: lvl,
-                targetWord: wordObj,
-                userAnswer: selectedStr,
-                correctAnswer: currentCorrectAnswer,
-                isCorrect: isCorrect
-            });
-
-            if(isCorrect) {
-                if(btnElement) { btnElement.style.backgroundColor = "var(--success)"; btnElement.style.color = "white"; }
-                catScore += catLevel; 
-                catLevel = Math.min(3, catLevel + 1); 
-            } else {
-                if(btnElement) { btnElement.style.backgroundColor = "var(--danger)"; btnElement.style.color = "white"; }
-                catLevel = Math.max(1, catLevel - 1); 
-            }
-
-            currentCatIndex++;
-            setTimeout(loadCatQuestion, 1200); 
-        }
-
-        function finishCAT() {
-            document.getElementById('cat-exam-screen').style.display = "none";
-            document.getElementById('cat-result-screen').style.display = "block";
-            
-            let maxPossibleScore = testLength * 3;
-            let percentage = (catScore / maxPossibleScore) * 100;
-            
-            let finalBand = "A1";
-            let desc = "Fokus tingkatkan kosakata harian.";
-            let motivationText = "";
-            
-            if(percentage >= 75) { 
-                finalBand = "B2 (Level 4)"; 
-                desc = "Luar Biasa! Kemampuan membaca Anda setara ujian asli."; 
-                motivationText = "🎯 <b>Misi Selesai:</b> Skor Anda sudah jauh melampaui syarat Universitas Tungnan! Stamina mata Anda memindai teks panjang (Level 3) sudah sangat terkalibrasi. Pertahankan ritme ini dan terus kumpulkan kosakata alat atau bahan-bahan dapur untuk persiapan jurusan Perhotelan!";
-            }
-            else if(percentage >= 50) { 
-                finalBand = "B1 (Level 3)"; 
-                desc = "Sangat Bagus! Memenuhi batas syarat kuliah."; 
-                motivationText = "💡 <b>Potensi Hebat:</b> Selamat! Di level ini, Anda sudah aman untuk mendaftar ke Tungnan University jurusan Perhotelan. Namun, pastikan Anda memeriksa bagian 'Pembahasan' di bawah. Perhatikan kata hubung yang sering mengecoh Anda saat dihadapkan pada kalimat panjang.";
-            }
-            else if(percentage >= 30) { 
-                finalBand = "A2 (Level 2)"; 
-                desc = "Bagus! Fondasi membaca sudah terbangun."; 
-                motivationText = "🔥 <b>Satu Langkah Lagi:</b> Anda sudah kuat di pengenalan Hanzi lepas, tetapi mungkin masih sedikit panik saat melihat teks panjang rumpang. Jangan khawatir! Ingat, setiap tebakan salah hari ini adalah pelajaran berharga untuk ujian besok. Buka menu Pembahasan untuk melihat logika penyusunan kalimat yang benar.";
-            } else {
-                motivationText = "🌱 <b>Fase Pertumbuhan:</b> Jangan putus asa! Kemungkinan besar tekanan waktu (timer) membuat Anda tidak fokus. Gunakan Tab Flashcard lebih sering sebelum mencoba simulasi CAT lagi. Setiap ahli jaringan TKJ tahu bahwa koneksi kadang butuh *troubleshooting* sebelum lancar. Mari perbaiki pelan-pelan!";
-            }
-            
-            document.getElementById('cat-final-score').textContent = finalBand;
-            document.getElementById('cat-final-desc').textContent = desc + ` (Skor Mentah: ${catScore} / ${maxPossibleScore})`;
-            document.getElementById('cat-motivation').innerHTML = motivationText;
-        }
-
-        // ==========================================
-        // 5. Fitur Review / Pembahasan Soal
-        // ==========================================
-        function showReview() {
-            document.getElementById('cat-result-screen').style.display = "none";
-            document.getElementById('cat-review-screen').style.display = "block";
-            
-            const container = document.getElementById('review-list-container');
-            container.innerHTML = "";
-
-            examHistory.forEach((item, index) => {
-                let div = document.createElement('div');
-                div.className = `review-item ${item.isCorrect ? 'review-correct' : 'review-wrong'}`;
-                
-                let badgeClass = item.isCorrect ? 'badge-benar' : 'badge-salah';
-                let badgeText = item.isCorrect ? '✔ BENAR' : '✖ SALAH';
-                
-                let explanation = "";
-                if(item.level === 3) {
-                    explanation = `Konteks kalimat di atas membutuhkan kata yang berkaitan dengan <b>"${item.targetWord.arti}"</b>. Jawaban yang paling tepat untuk mengisi bagian yang kosong adalah <b>${item.targetWord.hanzi}</b> (${item.targetWord.pinyin}).`;
-                } else {
-                    explanation = `Karakter <b>${item.targetWord.hanzi}</b> (${item.targetWord.pinyin}) memiliki arti yang spesifik yaitu <b>${item.targetWord.arti}</b>.`;
-                    if(!item.isCorrect && item.userAnswer !== "TIMEOUT (Waktu Habis)") {
-                        explanation += ` Jawaban "${item.userAnswer}" kurang tepat.`;
-                    }
-                }
-
-                div.innerHTML = `
-                    <span class="badge-status ${badgeClass}">${badgeText} (Level ${item.level})</span>
-                    <div class="review-q">Q${index+1}: ${item.question}</div>
-                    <div style="font-size:0.95rem; margin-bottom:5px;">Jawaban Anda: <b style="color:${item.isCorrect ? 'var(--success)' : 'var(--danger)'}">${item.userAnswer}</b></div>
-                    <div style="font-size:0.95rem; color:var(--success);">Jawaban Benar: <b>${item.correctAnswer}</b></div>
-                    <div class="review-explanation">
-                        📝 <b>Alasan:</b> ${explanation}
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        // ==========================================
-        // 6. Fitur Bank Kosakata & CSV
-        // ==========================================
-        document.getElementById('csvFileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(event) { parseCSV(event.target.result); };
-            reader.readAsText(file);
-        });
-
-        function parseCSV(text) {
-            const lines = text.split('\n');
-            let addedCount = 0;
-            
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue; 
-                const columns = line.split(/[;,]/); 
-                
-                if (columns.length >= 3) {
-                    if (columns[0].toLowerCase().includes('hanzi')) continue; 
-                    
-                    let newHanzi = columns[0].trim();
-                    if(!fullVocab.some(item => item.hanzi === newHanzi)) {
-                        fullVocab.push({
-                            hanzi: newHanzi,
-                            pinyin: columns[1].trim(),
-                            arti: columns[2].trim(),
-                            kategori: columns.length >= 4 ? columns[3].trim() : "Kosakata Baru"
-                        });
-                        addedCount++;
-                    }
-                }
-            }
-            if (addedCount > 0) {
-                saveVocab();
-                populateCategories();
-                filterCategory(); 
-                renderBank(); 
-                alert(`Berhasil menambahkan ${addedCount} kosa kata baru ke Bank Data!`);
-            }
-            document.getElementById('csvFileInput').value = ""; 
-        }
-
-        function saveVocab() { localStorage.setItem('tocflVocab', JSON.stringify(fullVocab)); }
-        function clearBank() {
-            if(confirm("Yakin ingin menghapus SEMUA kosakata?")) {
-                fullVocab = []; saveVocab(); populateCategories(); renderBank();
-            }
-        }
-        function renderBank() {
-            document.getElementById('bank-total').textContent = fullVocab.length;
-            const container = document.getElementById('bank-list-container');
-            container.innerHTML = "";
-            fullVocab.forEach(item => {
-                let div = document.createElement('div');
-                div.className = "bank-item";
-                div.innerHTML = `
-                    <div class="bank-hanzi">${item.hanzi}</div>
-                    <div style="font-size:0.9rem; color:#666;">${item.pinyin} | ${item.arti}</div>
-                    <div style="font-size:0.8rem; background:#e9ecef; display:inline-block; padding:2px 5px; border-radius:3px; margin-top:3px;">${item.kategori}</div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        // ==========================================
-        // 7. Mode Gelap
-        // ==========================================
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('tocflTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-        }
-        if(localStorage.getItem('tocflTheme') === 'dark') document.body.classList.add('dark-mode');
-
-        // INIT
-        populateCategories(); filterCategory(); renderBank();
-    </script>
-</body>
-</html>
+            testLength = Math.min(30, shuffled.
