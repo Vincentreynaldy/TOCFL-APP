@@ -109,7 +109,7 @@
                 </select>
                 
                 <div class="toggle-container">
-                    <input type="checkbox" id="modeKalimatToggle" onchange="loadCard(currentIndex)"> 
+                    <input type="checkbox" id="modeKalimatToggle" onchange="safeLoadCard(currentIndex)"> 
                     <label for="modeKalimatToggle" style="color:var(--primary);">Mode Kalimat Rumpang (B1)</label>
                 </div>
             </div>
@@ -140,7 +140,7 @@
         <!-- TAB 2: UJIAN CAT B1 -->
         <div id="tab-cat" class="tab-content">
             <h3>Simulasi CAT B1</h3>
-            <p style="font-size:0.85rem;">Level 1: Kosakata. Level 2: Kalimat Rumpang. Level 3: Bacaan Paragraf Panjang.</p>
+            <p style="font-size:0.85rem;">Level 1: Kosakata. Level 2: Kalimat Rumpang. Level 3: Bacaan Paragraf.</p>
             
             <div id="cat-start-screen">
                 <button class="btn-primary w-100" style="padding:15px; font-size:1.1rem;" onclick="startCAT()">🚀 Mulai Ujian (B1)</button>
@@ -148,7 +148,7 @@
 
             <div id="cat-exam-screen" class="cat-container" style="display: none;">
                 <div class="cat-header">
-                    <span id="cat-progress">Soal 1/50</span>
+                    <span id="cat-progress">Soal 1/30</span>
                     <span id="cat-timer" class="cat-timer">⏳ 15s</span>
                 </div>
                 <div style="font-size: 0.8rem; color: var(--primary); font-weight:bold;" id="cat-level-indicator">Tingkat Kesulitan: Level 1</div>
@@ -167,15 +167,13 @@
                 <p id="cat-final-desc" style="font-weight:bold;">Estimasi Level Kemampuan</p>
                 <div id="cat-motivation" style="font-size:0.95rem; line-height:1.5; margin:15px 0; text-align:left; background:var(--card-bg); padding:15px; border-radius:8px; border-left: 4px solid var(--primary);"></div>
                 
-                <button class="btn-success w-100" style="margin-bottom:10px;" onclick="showReview()">📝 Lihat Pembahasan B1</button>
+                <button class="btn-success w-100" style="margin-bottom:10px;" onclick="showReview()">📝 Lihat Pembahasan</button>
                 <button class="btn-primary w-100" onclick="document.getElementById('cat-start-screen').style.display='block'; document.getElementById('cat-result-screen').style.display='none';">🔄 Coba Lagi</button>
             </div>
 
             <div id="cat-review-screen" class="cat-container" style="display: none;">
                 <h3 style="margin-top:0;">Pembahasan Analitis</h3>
-                <div id="review-list-container" class="review-list" style="max-height: 60vh;">
-                    <!-- Diisi lewat JS -->
-                </div>
+                <div id="review-list-container" class="review-list" style="max-height: 60vh;"></div>
                 <button class="btn-primary w-100" style="margin-top: 15px;" onclick="document.getElementById('cat-result-screen').style.display='block'; document.getElementById('cat-review-screen').style.display='none';">⬅ Kembali ke Hasil</button>
             </div>
         </div>
@@ -190,7 +188,10 @@
             
             <h4 style="text-align: left; margin-bottom: 5px;">Data Tersimpan (<span id="bank-total">0</span> kata)</h4>
             <div class="bank-list" id="bank-list-container"></div>
+            
+            <!-- Tombol Darurat -->
             <button class="btn-danger w-100" style="margin-top: 15px;" onclick="clearBank()">🗑️ Hapus Seluruh Data</button>
+            <button class="w-100" style="margin-top: 10px; background: #6c757d;" onclick="fixDatabase()">🛠️ Perbaiki Database Error</button>
         </div>
 
     </div>
@@ -209,14 +210,21 @@
 
     <script>
         // ==========================================
-        // 1. Data & Variabel
+        // 1. Data & Variabel Anti-Crash
         // ==========================================
-        let fullVocab = JSON.parse(localStorage.getItem('tocflVocab')) || [];
+        let fullVocab = [];
+        try {
+            fullVocab = JSON.parse(localStorage.getItem('tocflVocab')) || [];
+            // Bersihkan data cacat
+            fullVocab = fullVocab.filter(item => item && item.hanzi && item.arti);
+        } catch (e) {
+            fullVocab = [];
+        }
+        
         let activeDeck = [];
         let currentIndex = 0;
         let isFlipped = false;
 
-        // DB Kalimat Rumpang (Level 2)
         const sentenceDB = {
             "提高": "為了 ＿＿＿ 聽力，老師推薦我們每天聽外文歌。",
             "通知": "突然收到公司的 ＿＿＿，下個月要派我去外國工作。",
@@ -234,7 +242,6 @@
             "因為": "＿＿＿ 天氣變冷了，所以我們決定不去游泳。"
         };
 
-        // DB Paragraf B1 (Level 3 - Ekstensif)
         const paragraphDB = [
             {
                 text: "歡迎來到東南大飯店。我們飯店有免費的游泳池和溫泉。如果您需要計程車，請告訴櫃台。",
@@ -260,7 +267,7 @@
         ];
 
         // ==========================================
-        // 2. Navigasi
+        // 2. Navigasi Aman
         // ==========================================
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -272,7 +279,7 @@
         }
 
         // ==========================================
-        // 3. Flashcard SRS (Mode B1)
+        // 3. Flashcard Anti-Crash
         // ==========================================
         function populateCategories() {
             const select = document.getElementById('categorySelect');
@@ -290,34 +297,43 @@
             activeDeck = selectedCat === "Semua" ? [...fullVocab] : fullVocab.filter(item => (item.kategori || "Umum") === selectedCat);
             activeDeck.sort(() => Math.random() - 0.5); 
             currentIndex = 0;
-            loadCard(currentIndex);
+            safeLoadCard(currentIndex);
         }
 
-        function loadCard(index) {
-            if(activeDeck.length === 0) return;
-            
-            let word = activeDeck[index];
-            let cleanHanzi = word.hanzi.replace(/\(.*\)/g, "");
-            let sentence = sentenceDB[cleanHanzi];
-            let isSentenceMode = document.getElementById('modeKalimatToggle').checked && sentence;
+        function safeLoadCard(index) {
+            try {
+                if(activeDeck.length === 0) {
+                    document.getElementById('hanzi-text').textContent = "Kosong";
+                    return;
+                }
+                
+                let word = activeDeck[index];
+                if(!word || !word.hanzi) return; // Mencegah crash jika data rusak
 
-            if(isSentenceMode) {
-                document.getElementById('hanzi-text').textContent = sentence;
-                document.getElementById('hanzi-text').style.fontSize = "1.5rem";
-                document.getElementById('pinyin-text').textContent = word.hanzi + " (" + word.pinyin + ")";
-                document.getElementById('arti-text').textContent = word.arti;
-            } else {
-                document.getElementById('hanzi-text').textContent = word.hanzi;
-                document.getElementById('hanzi-text').style.fontSize = "3.5rem";
-                document.getElementById('pinyin-text').textContent = word.pinyin;
-                document.getElementById('arti-text').textContent = word.arti;
+                let cleanHanzi = word.hanzi.replace(/\(.*\)/g, "");
+                let sentence = sentenceDB[cleanHanzi];
+                let isSentenceMode = document.getElementById('modeKalimatToggle').checked && sentence;
+
+                if(isSentenceMode) {
+                    document.getElementById('hanzi-text').textContent = sentence;
+                    document.getElementById('hanzi-text').style.fontSize = "1.5rem";
+                    document.getElementById('pinyin-text').textContent = word.hanzi + " (" + word.pinyin + ")";
+                    document.getElementById('arti-text').textContent = word.arti;
+                } else {
+                    document.getElementById('hanzi-text').textContent = word.hanzi;
+                    document.getElementById('hanzi-text').style.fontSize = "3.5rem";
+                    document.getElementById('pinyin-text').textContent = word.pinyin;
+                    document.getElementById('arti-text').textContent = word.arti;
+                }
+                
+                document.getElementById('cat-text').textContent = "Kategori: " + (word.kategori || "Umum");
+                isFlipped = false;
+                document.getElementById('flashcard').classList.remove('flipped');
+                document.getElementById('srs-buttons').style.display = "none";
+                document.getElementById('normal-buttons').style.display = "block";
+            } catch (e) {
+                console.error(e);
             }
-            
-            document.getElementById('cat-text').textContent = "Kategori: " + (word.kategori || "Umum");
-            isFlipped = false;
-            document.getElementById('flashcard').classList.remove('flipped');
-            document.getElementById('srs-buttons').style.display = "none";
-            document.getElementById('normal-buttons').style.display = "block";
         }
 
         function flipCard() {
@@ -338,7 +354,7 @@
                 alert("Hebat! Anda telah menyelesaikan deck ini.");
                 currentIndex = 0; activeDeck.sort(() => Math.random() - 0.5);
             }
-            loadCard(currentIndex);
+            safeLoadCard(currentIndex);
         }
 
         function playAudio() {
@@ -352,7 +368,7 @@
         }
 
         // ==========================================
-        // 4. Sistem CAT (Level 1, 2, 3 Paragraf)
+        // 4. Sistem CAT Anti-Crash
         // ==========================================
         let catQuestions = [];
         let currentCatIndex = 0;
@@ -374,8 +390,290 @@
             
             examHistory = []; 
             let uniqueVocabMap = new Map();
-            fullVocab.forEach(item => uniqueVocabMap.set(item.hanzi, item));
+            fullVocab.forEach(item => { if(item && item.hanzi) uniqueVocabMap.set(item.hanzi, item); });
             let uniqueVocab = Array.from(uniqueVocabMap.values());
             
             let shuffled = uniqueVocab.sort(() => Math.random() - 0.5);
-            testLength = Math.min(30, shuffled.
+            testLength = Math.min(30, shuffled.length); 
+            catQuestions = shuffled.slice(0, testLength);
+
+            currentCatIndex = 0;
+            catLevel = 1;
+            catScore = 0;
+            
+            loadCatQuestion();
+        }
+
+        function loadCatQuestion() {
+            if(currentCatIndex >= catQuestions.length) return finishCAT();
+
+            document.getElementById('cat-progress').textContent = `Soal ${currentCatIndex + 1} / ${testLength}`;
+            
+            let targetWord = catQuestions[currentCatIndex];
+            if(!targetWord || !targetWord.hanzi) { 
+                currentCatIndex++; return loadCatQuestion(); // Lewati kata yang rusak
+            }
+
+            let cleanHanzi = targetWord.hanzi.replace(/\(.*\)/g, ""); 
+            let hasLongSentence = sentenceDB[cleanHanzi] !== undefined;
+            
+            let qDisplay = document.getElementById('cat-question-display');
+            qDisplay.classList.remove('long-text'); 
+            
+            let questionText = "";
+            let pinyinText = "";
+            let options = [];
+            let displayTime = 15;
+            let currentPara = null;
+
+            if (catLevel >= 3 && paragraphDB.length > 0) {
+                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 3 (Membaca Paragraf)`;
+                currentPara = paragraphDB[Math.floor(Math.random() * paragraphDB.length)];
+                
+                questionText = `[BACAAN]\n${currentPara.text}\n\nQ: ${currentPara.question}`;
+                qDisplay.innerHTML = `<div style="font-size:1.1rem; border-bottom:1px solid #ccc; padding-bottom:10px; margin-bottom:10px;">${currentPara.text}</div>
+                                      <div style="font-size:1.3rem;">❓ ${currentPara.question}</div>`;
+                qDisplay.classList.add('long-text');
+                
+                pinyinText = "💡 Jangan baca per huruf, cari inti ceritanya.";
+                currentCorrectAnswer = currentPara.correct;
+                options = [...currentPara.options].sort(() => Math.random() - 0.5);
+                displayTime = 60; 
+            } 
+            else if (catLevel >= 2 && hasLongSentence) {
+                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 2 (Kalimat Rumpang)`;
+                questionText = sentenceDB[cleanHanzi];
+                qDisplay.textContent = questionText;
+                qDisplay.classList.add('long-text');
+                
+                pinyinText = "💡 Pilih Hanzi yang tepat.";
+                currentCorrectAnswer = targetWord.hanzi;
+                options = generateOptions(targetWord.hanzi, 'hanzi');
+                displayTime = 25; 
+            }
+            else {
+                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 1 (Kosakata Dasar)`;
+                questionText = targetWord.hanzi;
+                qDisplay.textContent = questionText;
+                
+                pinyinText = targetWord.pinyin;
+                currentCorrectAnswer = targetWord.arti;
+                options = generateOptions(targetWord.arti, 'arti');
+                displayTime = 15;
+            }
+
+            document.getElementById('cat-pinyin-display').textContent = pinyinText;
+
+            const optContainer = document.getElementById('cat-options-container');
+            optContainer.innerHTML = "";
+            options.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = "cat-option-btn";
+                btn.textContent = opt;
+                btn.onclick = () => submitCatAnswer(opt, btn, questionText, catLevel, targetWord, currentPara);
+                optContainer.appendChild(btn);
+            });
+
+            startCatTimer(displayTime, questionText, catLevel, targetWord, currentPara);
+        }
+
+        function generateOptions(correctStr, keyType) {
+            let opts = [correctStr];
+            let pool = [...fullVocab].sort(() => Math.random() - 0.5);
+            for(let w of pool) {
+                if(opts.length >= 4) break;
+                if(w[keyType] !== correctStr && !opts.includes(w[keyType])) opts.push(w[keyType]);
+            }
+            return opts.sort(() => Math.random() - 0.5);
+        }
+
+        function startCatTimer(seconds, qText, lvl, wordObj, paraObj) {
+            clearInterval(catTimerInterval);
+            timeLeft = seconds;
+            document.getElementById('cat-timer').textContent = `⏳ ${timeLeft}s`;
+            
+            catTimerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('cat-timer').textContent = `⏳ ${timeLeft}s`;
+                if(timeLeft <= 0) {
+                    clearInterval(catTimerInterval);
+                    submitCatAnswer("TIMEOUT (Waktu Habis)", null, qText, lvl, wordObj, paraObj); 
+                }
+            }, 1000);
+        }
+
+        function submitCatAnswer(selectedStr, btnElement, qText, lvl, wordObj, paraObj) {
+            clearInterval(catTimerInterval);
+            document.querySelectorAll('.cat-option-btn').forEach(b => b.disabled = true);
+
+            let isCorrect = (selectedStr === currentCorrectAnswer);
+            let qType = paraObj ? 'paragraph' : (lvl >= 2 && sentenceDB[wordObj.hanzi.replace(/\(.*\)/g, "")] ? 'sentence' : 'word');
+
+            examHistory.push({
+                type: qType,
+                question: qText,
+                level: lvl,
+                targetWord: wordObj,
+                paraData: paraObj,
+                userAnswer: selectedStr,
+                correctAnswer: currentCorrectAnswer,
+                isCorrect: isCorrect
+            });
+
+            if(isCorrect) {
+                if(btnElement) { btnElement.style.backgroundColor = "var(--success)"; btnElement.style.color = "white"; }
+                catScore += catLevel; 
+                catLevel = Math.min(3, catLevel + 1); 
+            } else {
+                if(btnElement) { btnElement.style.backgroundColor = "var(--danger)"; btnElement.style.color = "white"; }
+                catLevel = Math.max(1, catLevel - 1); 
+            }
+
+            currentCatIndex++;
+            setTimeout(loadCatQuestion, 1500); 
+        }
+
+        function finishCAT() {
+            document.getElementById('cat-exam-screen').style.display = "none";
+            document.getElementById('cat-result-screen').style.display = "block";
+            
+            let maxPossibleScore = testLength * 3;
+            let percentage = (catScore / maxPossibleScore) * 100;
+            
+            let finalBand = "A2";
+            let desc = "Pemanasan B1.";
+            let motivationText = "🌱 <b>Tetap Semangat!</b> Setiap error adalah pembelajaran.";
+            
+            if(percentage >= 75) { 
+                finalBand = "B1 (Level 3)"; desc = "Selamat! Anda sukses beradaptasi dengan B1.";
+                motivationText = "🎯 <b>Skill Ekstensif Aktif!</b> Anda berhasil memecahkan logika kalimat rumpang dan teks panjang!";
+            } else if(percentage >= 40) { 
+                finalBand = "A2 (Lanjutan)"; desc = "Koneksi ke B1 sedang dibangun."; 
+            }
+            
+            document.getElementById('cat-final-score').textContent = finalBand;
+            document.getElementById('cat-final-desc').textContent = desc + ` (Skor: ${catScore} / ${maxPossibleScore})`;
+            document.getElementById('cat-motivation').innerHTML = motivationText;
+        }
+
+        function showReview() {
+            document.getElementById('cat-result-screen').style.display = "none";
+            document.getElementById('cat-review-screen').style.display = "block";
+            const container = document.getElementById('review-list-container');
+            container.innerHTML = "";
+            examHistory.forEach((item, index) => {
+                let div = document.createElement('div');
+                div.className = `review-item ${item.isCorrect ? 'review-correct' : 'review-wrong'}`;
+                
+                let badgeClass = item.isCorrect ? 'badge-benar' : 'badge-salah';
+                let badgeText = item.isCorrect ? '✔ BENAR' : '✖ SALAH';
+                
+                let explanation = "";
+                let displayQ = item.question;
+
+                if (item.type === 'paragraph') {
+                    displayQ = `<div style="font-size:0.9rem; margin-bottom:5px;">${item.paraData.text}</div><b>Q: ${item.paraData.question}</b>`;
+                    explanation = item.paraData.explanation;
+                } else if(item.type === 'sentence') {
+                    explanation = `Kalimat ini butuh kata <b>"${item.targetWord.arti}"</b>. Jawaban yang tepat: <b>${item.targetWord.hanzi}</b>.`;
+                } else {
+                    explanation = `Karakter <b>${item.targetWord.hanzi}</b> berarti <b>${item.targetWord.arti}</b>.`;
+                }
+
+                div.innerHTML = `
+                    <span class="badge-status ${badgeClass}">${badgeText} (Level ${item.level})</span>
+                    <div class="review-q">Q${index+1}: ${displayQ}</div>
+                    <div style="font-size:0.95rem;">Jawaban Anda: <b style="color:${item.isCorrect ? 'var(--success)' : 'var(--danger)'}">${item.userAnswer}</b></div>
+                    <div style="font-size:0.95rem; color:var(--success);">Jawaban Benar: <b>${item.correctAnswer}</b></div>
+                    <div class="review-explanation">📝 <b>Alasan:</b> ${explanation}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // ==========================================
+        // 5. Fitur CSV & Database Failsafe
+        // ==========================================
+        document.getElementById('csvFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) { parseCSV(event.target.result); };
+            reader.readAsText(file);
+        });
+
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            let addedCount = 0;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue; 
+                const columns = line.split(/[;,]/); 
+                if (columns.length >= 3) {
+                    if (columns[0].toLowerCase().includes('hanzi')) continue; 
+                    let newHanzi = columns[0].trim();
+                    let newArti = columns[2].trim();
+                    if(newHanzi && newArti && !fullVocab.some(item => item.hanzi === newHanzi)) {
+                        fullVocab.push({
+                            hanzi: newHanzi,
+                            pinyin: columns[1].trim(),
+                            arti: newArti,
+                            kategori: columns.length >= 4 ? columns[3].trim() : "Kosakata Baru"
+                        });
+                        addedCount++;
+                    }
+                }
+            }
+            if (addedCount > 0) {
+                saveVocab(); populateCategories(); filterCategory(); renderBank(); 
+                alert(`Berhasil menambahkan ${addedCount} kosa kata baru!`);
+            }
+            document.getElementById('csvFileInput').value = ""; 
+        }
+
+        function saveVocab() { localStorage.setItem('tocflVocab', JSON.stringify(fullVocab)); }
+        
+        function clearBank() {
+            if(confirm("Yakin ingin menghapus SEMUA kosakata?")) {
+                fullVocab = []; saveVocab(); populateCategories(); renderBank();
+                location.reload();
+            }
+        }
+
+        function fixDatabase() {
+            localStorage.removeItem('tocflVocab');
+            alert("Database di-reset untuk memperbaiki error! Silakan muat ulang CSV Anda.");
+            location.reload();
+        }
+
+        function renderBank() {
+            document.getElementById('bank-total').textContent = fullVocab.length;
+            const container = document.getElementById('bank-list-container');
+            container.innerHTML = "";
+            fullVocab.forEach(item => {
+                if(!item || !item.hanzi) return;
+                let div = document.createElement('div');
+                div.className = "bank-item";
+                div.innerHTML = `
+                    <div class="bank-hanzi">${item.hanzi}</div>
+                    <div style="font-size:0.9rem; color:#666;">${item.pinyin} | ${item.arti}</div>
+                    <div style="font-size:0.8rem; background:#e9ecef; display:inline-block; padding:2px 5px; border-radius:3px; margin-top:3px;">${item.kategori}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('tocflTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if(localStorage.getItem('tocflTheme') === 'dark') document.body.classList.add('dark-mode');
+
+        try {
+            populateCategories(); filterCategory(); renderBank();
+        } catch(e) {
+            console.error("Inisialisasi gagal: ", e);
+        }
+    </script>
+</body>
+</html>
