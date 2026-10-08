@@ -3,677 +3,1156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOCFL Pro: B1 Master</title>
+    <title>HànZì Learn - 漢字學習</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM (UMD Build) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for in-browser JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <style>
-        :root {
-            --bg-color: #f4f4f9; --text-color: #222;
-            --card-bg: white; --card-back: #e3f2fd;
-            --primary: #007bff; --success: #28a745; --danger: #dc3545; --warning: #ffc107;
-            --container-bg: #e9ecef; --border-color: #ccc;
-        }
-
-        .dark-mode {
-            --bg-color: #121212; --text-color: #f4f4f9;
-            --card-bg: #2d2d2d; --card-back: #1a365d;
-            --container-bg: #1e1e1e; --border-color: #444;
-        }
-
-        body {
-            font-family: Arial, sans-serif; text-align: center; background-color: var(--bg-color);
-            color: var(--text-color); margin: 0; padding: 0; padding-bottom: 70px;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        .app-container { max-width: 450px; margin: auto; padding: 15px; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap');
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-top: 10px; }
-        .theme-toggle { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-color); }
-
-        .tab-bar {
-            position: fixed; bottom: 0; left: 0; right: 0; background: var(--container-bg);
-            display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border-color);
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
-        }
-        .tab-btn {
-            background: none; border: none; font-size: 0.9rem; font-weight: bold;
-            color: var(--text-color); cursor: pointer; padding: 10px; opacity: 0.6;
-            display: flex; flex-direction: column; align-items: center; gap: 5px;
-        }
-        .tab-btn.active { opacity: 1; color: var(--primary); }
-
-        .tab-content { display: none; animation: fadeIn 0.3s; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        button { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; }
-        .btn-primary { background: var(--primary); }
-        .btn-danger { background: var(--danger); }
-        .btn-success { background: var(--success); }
-        .w-100 { width: 100%; margin-top: 10px; }
-        select, input[type="file"] { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; box-sizing: border-box; }
-
-        .flashcard { width: 300px; height: 230px; perspective: 1000px; cursor: pointer; margin: 15px auto; position: relative; }
-        .front, .back {
-            width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            border: 2px solid var(--border-color); border-radius: 12px;
-            transition: transform 0.6s; background-color: var(--card-bg); box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            padding: 15px; box-sizing: border-box;
-        }
-        .back { transform: rotateY(180deg); background-color: var(--card-back); }
-        .flashcard.flipped .front { transform: rotateY(180deg); }
-        .flashcard.flipped .back { transform: rotateY(360deg); }
-        #hanzi-text { font-size: 3.5rem; margin: 0; transition: font-size 0.3s; }
+        body { font-family: 'Inter', sans-serif; background-color: #F0F0F0; }
+        .font-serif-sc { font-family: 'Noto Serif SC', serif; }
         
-        .cat-container { background: var(--container-bg); padding: 20px; border-radius: 12px; margin-top: 20px; }
-        .cat-question { font-size: 2.5rem; margin: 20px 0; font-weight: bold; transition: all 0.3s; }
-        .cat-question.long-text { font-size: 1.1rem; text-align: left; line-height: 1.6; }
-        .cat-options { display: flex; flex-direction: column; gap: 10px; }
-        .cat-option-btn { background: var(--card-bg); color: var(--text-color); border: 2px solid var(--border-color); padding: 15px; font-size: 1.1rem; border-radius: 8px; text-align: left; }
-        .cat-option-btn:hover { border-color: var(--primary); }
-        .cat-timer { font-size: 1.5rem; color: var(--danger); font-weight: bold; }
-        .cat-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-
-        .bank-list, .review-list { max-height: 400px; overflow-y: auto; background: var(--container-bg); border-radius: 8px; padding: 10px; text-align: left; margin-top: 15px; }
-        .bank-item { padding: 10px; border-bottom: 1px solid var(--border-color); }
-        .bank-item:last-child { border-bottom: none; }
-        .bank-hanzi { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
-
-        .review-item { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 10px; text-align: left; }
-        .review-correct { border-color: var(--success); }
-        .review-wrong { border-color: var(--danger); }
-        .review-q { font-weight: bold; margin-bottom: 8px; font-size: 1.05rem; }
-        .review-explanation { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; font-size: 0.9rem; margin-top: 10px; border-left: 4px solid #ffeeba; }
-        .dark-mode .review-explanation { background: #332b00; color: #ffeb8a; border-left-color: #ffc107; }
-        .badge-status { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: white; margin-bottom: 5px; }
-        .badge-benar { background: var(--success); }
-        .badge-salah { background: var(--danger); }
+        /* 3D Flip Card Utilities */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
         
-        .toggle-container { margin-top:10px; display:flex; align-items:center; justify-content:center; gap:10px; font-weight:bold; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #C0392B; }
     </style>
 </head>
 <body>
+    <div id="root"></div>
 
-    <div class="app-container">
-        <div class="header">
-            <h2>TOCFL Pro: B1</h2>
-            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-        </div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
-        <!-- TAB 1: FLASHCARD -->
-        <div id="tab-flashcard" class="tab-content active">
-            <div style="background: var(--container-bg); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                <label style="font-size: 0.9rem; font-weight: bold;">Pilih Deck:</label>
-                <select id="categorySelect" onchange="filterCategory()">
-                    <option value="Semua">Semua Kategori</option>
-                </select>
-                
-                <div class="toggle-container">
-                    <input type="checkbox" id="modeKalimatToggle" onchange="safeLoadCard(currentIndex)"> 
-                    <label for="modeKalimatToggle" style="color:var(--primary);">Mode Kalimat Rumpang (B1)</label>
-                </div>
-            </div>
-
-            <div id="flashcard" class="flashcard" onclick="flipCard()">
-                <div class="front">
-                    <h1 id="hanzi-text">漢字</h1>
-                    <p class="hint">Klik untuk membalik</p>
-                </div>
-                <div class="back">
-                    <h2 id="pinyin-text">hànzì</h2>
-                    <p id="arti-text" style="font-weight:bold; font-size:1.2rem;">Karakter Mandarin</p>
-                    <p id="cat-text" style="font-size: 0.75rem; color: #888;"></p>
-                </div>
-            </div>
-
-            <div id="srs-buttons" style="display:none; justify-content: center; gap: 10px; margin-top: 15px;">
-                <button class="btn-danger" style="flex:1;" onclick="answerCard('sulit')">Sulit (Ulangi)</button>
-                <button class="btn-success" style="flex:1;" onclick="answerCard('mudah')">Mudah</button>
-            </div>
-            <div id="normal-buttons" style="margin-top: 15px;">
-                <button class="btn-primary w-100" onclick="flipCard()">Balik Kartu</button>
-            </div>
-            
-            <button class="w-100" style="background:#17a2b8; margin-top:15px;" onclick="playAudio()">🔊 Dengar Audio</button>
-        </div>
-
-        <!-- TAB 2: UJIAN CAT B1 -->
-        <div id="tab-cat" class="tab-content">
-            <h3>Simulasi CAT B1</h3>
-            <p style="font-size:0.85rem;">Level 1: Kosakata. Level 2: Kalimat Rumpang. Level 3: Bacaan Paragraf.</p>
-            
-            <div id="cat-start-screen">
-                <button class="btn-primary w-100" style="padding:15px; font-size:1.1rem;" onclick="startCAT()">🚀 Mulai Ujian (B1)</button>
-            </div>
-
-            <div id="cat-exam-screen" class="cat-container" style="display: none;">
-                <div class="cat-header">
-                    <span id="cat-progress">Soal 1/30</span>
-                    <span id="cat-timer" class="cat-timer">⏳ 15s</span>
-                </div>
-                <div style="font-size: 0.8rem; color: var(--primary); font-weight:bold;" id="cat-level-indicator">Tingkat Kesulitan: Level 1</div>
-                
-                <div id="cat-question-display" class="cat-question">漢字</div>
-                <div id="cat-pinyin-display" style="color:#888; margin-bottom: 15px;">hànzì</div>
-                
-                <div class="cat-options" id="cat-options-container">
-                    <!-- Buttons generated via JS -->
-                </div>
-            </div>
-
-            <div id="cat-result-screen" class="cat-container" style="display: none;">
-                <h2>Ujian Selesai!</h2>
-                <h1 id="cat-final-score" style="color: var(--primary); font-size: 3rem; margin: 10px 0;">B1</h1>
-                <p id="cat-final-desc" style="font-weight:bold;">Estimasi Level Kemampuan</p>
-                <div id="cat-motivation" style="font-size:0.95rem; line-height:1.5; margin:15px 0; text-align:left; background:var(--card-bg); padding:15px; border-radius:8px; border-left: 4px solid var(--primary);"></div>
-                
-                <button class="btn-success w-100" style="margin-bottom:10px;" onclick="showReview()">📝 Lihat Pembahasan</button>
-                <button class="btn-primary w-100" onclick="document.getElementById('cat-start-screen').style.display='block'; document.getElementById('cat-result-screen').style.display='none';">🔄 Coba Lagi</button>
-            </div>
-
-            <div id="cat-review-screen" class="cat-container" style="display: none;">
-                <h3 style="margin-top:0;">Pembahasan Analitis</h3>
-                <div id="review-list-container" class="review-list" style="max-height: 60vh;"></div>
-                <button class="btn-primary w-100" style="margin-top: 15px;" onclick="document.getElementById('cat-result-screen').style.display='block'; document.getElementById('cat-review-screen').style.display='none';">⬅ Kembali ke Hasil</button>
-            </div>
-        </div>
-
-        <!-- TAB 3: BANK DATA -->
-        <div id="tab-bank" class="tab-content">
-            <h3>Bank Kosakata</h3>
-            <div style="background: var(--container-bg); padding: 15px; border-radius: 8px;">
-                <p style="font-size:0.85rem; margin-top:0;">Unggah file CSV baru di sini.</p>
-                <input type="file" id="csvFileInput" accept=".csv">
-            </div>
-            
-            <h4 style="text-align: left; margin-bottom: 5px;">Data Tersimpan (<span id="bank-total">0</span> kata)</h4>
-            <div class="bank-list" id="bank-list-container"></div>
-            
-            <!-- Tombol Darurat -->
-            <button class="btn-danger w-100" style="margin-top: 15px;" onclick="clearBank()">🗑️ Hapus Seluruh Data</button>
-            <button class="w-100" style="margin-top: 10px; background: #6c757d;" onclick="fixDatabase()">🛠️ Perbaiki Database Error</button>
-        </div>
-
-    </div>
-
-    <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('flashcard', this)">
-            <span>🎴</span><span>Flashcard</span>
-        </button>
-        <button class="tab-btn" onclick="switchTab('cat', this)">
-            <span>🎓</span><span>Ujian CAT</span>
-        </button>
-        <button class="tab-btn" onclick="switchTab('bank', this)">
-            <span>🗄️</span><span>Bank Data</span>
-        </button>
-    </div>
-
-    <script>
-        // ==========================================
-        // 1. Data & Variabel Anti-Crash
-        // ==========================================
-        let fullVocab = [];
-        try {
-            fullVocab = JSON.parse(localStorage.getItem('tocflVocab')) || [];
-            // Bersihkan data cacat
-            fullVocab = fullVocab.filter(item => item && item.hanzi && item.arti);
-        } catch (e) {
-            fullVocab = [];
-        }
-        
-        let activeDeck = [];
-        let currentIndex = 0;
-        let isFlipped = false;
-
-        const sentenceDB = {
-            "提高": "為了 ＿＿＿ 聽力，老師推薦我們每天聽外文歌。",
-            "通知": "突然收到公司的 ＿＿＿，下個月要派我去外國工作。",
-            "推薦": "這家飯店的服務很好，我非常 ＿＿＿ 你們來住。",
-            "派對": "下個週末是我的生日，我要舉辦一個 ＿＿＿，你要來嗎？",
-            "保護": "出門的時候要戴口罩，這樣才能 ＿＿＿ 自己的健康。",
-            "傳統": "除夕和春節是華人社會中非常重要的 ＿＿＿ 節日。",
-            "開玩笑": "他剛才說的話只是在 ＿＿＿，你不要太生氣。",
-            "上": "桌子 ＿＿＿ 有一本很厚的課本，你可以幫我拿嗎？",
-            "藥": "醫生特別交代，這個 ＿＿＿ 一天要吃三次。",
-            "生病": "小明昨天沒有穿外套就出門，結果今天早上就 ＿＿＿ 了。",
-            "捷運": "在台北市區，搭 ＿＿＿ 是最方便的交通方式。",
-            "雖然": "＿＿＿ 學習外語很累，但是對未來的計畫很有幫助。",
-            "只要": "＿＿＿ 你每天練習，你的中文成績一定會進步。",
-            "因為": "＿＿＿ 天氣變冷了，所以我們決定不去游泳。"
+        // ---------------------------------------------------------
+        // SVG ICONS COMPONENT
+        // ---------------------------------------------------------
+        const Icon = ({ name, className = "w-6 h-6" }) => {
+            const icons = {
+                'layout-dashboard': <path d="M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z"/>,
+                'layers': <path d="M12 2 2 7l10 5 10-5-10-5Z M2 17l10 5 10-5 M2 12l10 5 10-5"/>,
+                'book-open': <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>,
+                'headphones': <path d="M3 18v-6a9 9 0 0 1 18 0v6 M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3 M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3"/>,
+                'mic': <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z M19 10v2a7 7 0 0 1-14 0v-2 M12 19v4 M8 23h8"/>,
+                'mic-off': <path d="m2 2 20 20 M18.89 13.23A7.12 7.12 0 0 0 19 12v-2 M5 10v2a7 7 0 0 0 12 5 M15 9.34V5a3 3 0 0 0-5.68-1.33 M9 9v3a3 3 0 0 0 5.12 2.12 M12 19v4 M8 23h8"/>,
+                'pen-tool': <path d="m12 19 7-7 3 3-7 7-3-3z M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z M2 2l7.586 7.586 M11 11l2 2"/>,
+                'settings': <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>,
+                'flame': <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>,
+                'award': <path d="M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M8.21 13.89L7 23l5-3 5 3-1.21-9.12"/>,
+                'check': <path d="M20 6 9 17l-5-5"/>,
+                'x': <path d="M18 6 6 18 M6 6l12 12"/>,
+                'menu': <path d="M4 12h16 M4 6h16 M4 18h16"/>,
+                'play': <path d="M5 3l14 9-14 9V3z"/>,
+                'refresh': <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8 M3 3v5h5"/>,
+                'volume-2': <path d="M11 5L6 9H2v6h4l5 4V5z M15.54 8.46a5 5 0 0 1 0 7.07 M19.07 4.93a10 10 0 0 1 0 14.14"/>,
+                'chevron-right': <path d="m9 18 6-6-6-6"/>,
+                'chevron-left': <path d="m15 18-6-6 6-6"/>,
+                'upload': <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l-5-5-5 5 M12 3v12"/>,
+                'download': <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3"/>,
+                'trash': <path d="M3 6h18 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2 M10 11v6 M14 11v6"/>
+            };
+            return (
+                <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {icons[name] || icons['check']}
+                </svg>
+            );
         };
 
-        const paragraphDB = [
-            {
-                text: "歡迎來到東南大飯店。我們飯店有免費的游泳池和溫泉。如果您需要計程車，請告訴櫃台。",
-                question: "這家飯店「沒有」提供什麼？",
-                options: ["免費晚餐", "游泳池", "溫泉", "叫計程車的服務"],
-                correct: "免費晚餐",
-                explanation: "Teks menyebutkan kolam renang (游泳池), air panas (溫泉), dan layanan taksi (計程車). Tidak ada informasi mengenai makan malam gratis (免費晚餐)."
-            },
-            {
-                text: "為了提高語言能力，小明決定明年去台灣讀書。他平常在家都會看外文課本，也常聽中文流行音樂，所以他的聽力進步得很快。",
-                question: "小明為什麼聽力進步很快？",
-                options: ["因為他常聽中文音樂", "因為他常去台灣", "因為他每天去上課", "因為他有很多台灣朋友"],
-                correct: "因為他常聽中文音樂",
-                explanation: "Terdapat kalimat '也常聽中文流行音樂，所以他的聽力進步得很快' (juga sering mendengar musik pop Mandarin, jadi listeningnya maju pesat)."
-            },
-            {
-                text: "今天的天氣突然變得很冷，而且還下大雨。王先生出門的時候忘了帶傘，所以感冒了。他現在覺得頭很痛，必須去醫院看病。",
-                question: "王先生現在怎麼了？",
-                options: ["他的身體不舒服", "他的傘丟了", "他在醫院工作", "他的老闆生病了"],
-                correct: "他的身體不舒服",
-                explanation: "Teks menyebutkan dia flu (感冒了) dan sakit kepala (頭很痛), yang disimpulkan menjadi badannya tidak enak/sakit (身體不舒服)."
-            }
+        // ---------------------------------------------------------
+        // DATA DASAR
+        // ---------------------------------------------------------
+        const parseFC = (str) => str.split('^').map(s => { const [h, p, t, a, kh, ka] = s.split('|'); return { h, p, t: parseInt(t), a, kh, ka }; });
+        
+        const FLASHCARDS = parseFC(
+            "台北|Tái běi|3|Taipei|我在台北工作|Saya bekerja di Taipei^捷運|Jié yùn|4|MRT|搭捷運很方便|Naik MRT sangat praktis^珍珠奶茶|Zhēn zhū nǎi chá|1|Boba Tea|好喝的珍珠奶茶|Boba tea yang enak^飯店|Fàn diàn|4|Hotel|大飯店|Hotel besar^房間|Fáng jiān|1|Kamar|房間很乾淨|Kamar sangat bersih^訂房|Dìng fáng|4|Pesan kamar|我要訂房|Saya ingin pesan kamar^服務|Fú wù|4|Layanan|客房服務|Layanan kamar^護照|Hù zhào|4|Paspor|你的護照|Paspor Anda^鑰匙|Yào shi|4|Kunci|房間鑰匙|Kunci kamar^退房|Tuì fáng|4|Check out|中午退房|Check out siang^行李|Xíng lǐ|2|Bagasi/Barang|拿行李|Ambil bagasi^網路|Wǎng lù|4|Internet/Jaringan|網路很慢|Internet sangat lambat^電腦|Diàn nǎo|3|Komputer|我的電腦|Komputer saya^密碼|Mì mǎ|3|Password|WIFI密碼|Password WIFI^登入|Dēng rù|1|Login|登入系統|Login sistem^伺服器|Sì fú qì|4|Server|伺服器當機|Server down^系統|Xì tǒng|4|Sistem|系統更新|Update sistem^下載|Xià zài|4|Download|下載軟體|Download software^軟體|Ruǎn tǐ|3|Software|新軟體|Software baru^螢幕|Yíng mù|4|Layar|電腦螢幕|Layar komputer^鍵盤|Jiàn pán|2|Keyboard|用鍵盤打字|Mengetik dengan keyboard^工程師|Gōng chéng shī|1|Insinyur/Engineer|軟體工程師|Software engineer^維修|Wéi xiū|2|Perbaikan|維修電腦|Perbaikan komputer^歡迎|Huān yíng|2|Selamat Datang|歡迎光臨|Selamat datang (di toko/hotel)^大學|Dà xué|4|Universitas|台灣大學|Universitas Taiwan^考試|Kǎo shì|3|Ujian|明天有考試|Besok ada ujian^方便|Fāng biàn|1|Praktis|捷運很方便|MRT sangat praktis^多少錢|Duō shǎo qián|1|Berapa harga|這個多少錢|Ini berapa harganya?^便宜|Pián yí|2|Murah|太便宜了|Terlalu murah^貴|Guì|4|Mahal|這個太貴|Ini terlalu mahal^早餐|Zǎo cān|3|Sarapan|吃早餐|Makan sarapan^午餐|Wǔ cān|1|Makan siang|午餐時間|Waktu makan siang^晚餐|Wǎn cān|3|Makan malam|做晚餐|Bikin makan malam^工作|Gōng zuò|1|Bekerja|每天工作|Bekerja tiap hari^同事|Tóng shì|2|Rekan kerja|我的同事|Rekan kerja saya^會議|Huì yì|4|Rapat|開會|Rapat^經理|Jīng lǐ|1|Manajer|經理好|Halo Manajer^客戶|Kè hù|4|Klien/Customer|見客戶|Bertemu klien^麻煩|Má fán|2|Merepotkan/Permisi|麻煩你|Merepotkan Anda (permisi)^幫忙|Bāng máng|1|Bantuan|需要幫忙嗎|Butuh bantuan?^問題|Wèn tí|4|Masalah|沒問題|Tidak masalah^時間|Shí jiān|2|Waktu|沒有時間|Tidak ada waktu^準備|Zhǔn bèi|3|Persiapan|準備好了|Sudah siap^開始|Kāi shǐ|1|Mulai|現在開始|Mulai sekarang^結束|Jié shù|2|Selesai|會議結束|Rapat selesai^今天|Jīn tiān|1|Hari ini|今天很忙|Hari ini sangat sibuk^明天|Míng tiān|2|Besok|明天見|Sampai jumpa besok^昨天|Zuó tiān|2|Kemarin|昨天很累|Kemarin sangat lelah^漂亮|Piào liàng|4|Cantik/Bagus|很漂亮|Sangat cantik^乾淨|Gān jìng|1|Bersih|很乾淨|Sangat bersih"
+        );
+
+        const READING_TEXTS = [
+            { id:1, lvl:1, title:"Perkenalan Diri", h:"你好！我叫安迪。我在台北工作，我是軟體工程師。", p:"Nǐ hǎo! Wǒ jiào ān dí. Wǒ zài Tái běi gōng zuò, wǒ shì ruǎn tǐ gōng chéng shī.", i:"Halo! Nama saya Andi. Saya bekerja di Taipei, saya adalah software engineer.", qs:[{q:"Dimana Andi bekerja?",o:["Jakarta","Taipei","Beijing"],a:1},{q:"Apa pekerjaannya?",o:["Manajer","Insinyur Software","Resepsionis"],a:1},{q:"Siapa nama penulis?",o:["Andi","Budi","Cici"],a:0}] },
+            { id:2, lvl:1, title:"Pesan Kamar Hotel", h:"我想訂一間雙人房。請問一晚多少錢？", p:"Wǒ xiǎng dìng yī jiān shuāng rén fáng. Qǐng wèn yī wǎn duō shǎo qián?", i:"Saya ingin pesan satu kamar double. Permisi, semalam berapa harganya?", qs:[{q:"Apa yang ingin dipesan?",o:["Kamar single","Kamar double","Tiket pesawat"],a:1},{q:"Apa yang ditanyakan?",o:["Waktu","Fasilitas","Harga"],a:2},{q:"Kamar untuk berapa orang?",o:["Satu","Dua","Tiga"],a:1}] },
+            { id:3, lvl:2, title:"Masalah Internet", h:"飯店的網路很慢，我無法登入伺服器。麻煩你幫忙維修。", p:"Fàn diàn de wǎng lù hěn màn, wǒ wú fǎ dēng rù sì fú qì. Má fán nǐ bāng máng wéi xiū.", i:"Internet hotel sangat lambat, saya tidak bisa login ke server. Mohon bantuan Anda untuk memperbaikinya.", qs:[{q:"Di mana masalah terjadi?",o:["Kantor","Hotel","MRT"],a:1},{q:"Apa masalah utamanya?",o:["Internet lambat","Komputer rusak","Kunci hilang"],a:0},{q:"Apa yang dia minta?",o:["Bantuan perbaikan","Pindah kamar","Diskon"],a:0}] },
+            { id:4, lvl:2, title:"Transportasi Taipei", h:"在台北搭捷運非常方便，又快又乾淨。我們搭捷運去餐廳吃晚餐吧！", p:"Zài Tái běi dā jié yùn fēi cháng fāng biàn, yòu kuài yòu gān jìng. Wǒ men dā jié yùn qù cān tīng chī wǎn cān ba!", i:"Naik MRT di Taipei sangat praktis, cepat dan bersih. Mari kita naik MRT pergi ke restoran makan malam!", qs:[{q:"Kendaraan apa yang dibahas?",o:["Taksi","Bus","MRT"],a:2},{q:"Bagaimana kondisi kendaraannya?",o:["Murah","Cepat dan bersih","Kotor"],a:1},{q:"Ke mana mereka akan pergi?",o:["Restoran","Hotel","Kantor"],a:0}] },
+            { id:5, lvl:2, title:"Kerja Shift", h:"今天工作很多，下午有一個會議。經理說系統有問題，我們需要準備更新。", p:"Jīn tiān gōng zuò hěn duō, xià wǔ yǒu yí gè huì yì. Jīng lǐ shuō xì tǒng yǒu wèn tí, wǒ men xū yào zhǔn bèi gēng xīn.", i:"Hari ini pekerjaan sangat banyak, sore ada sebuah rapat. Manajer bilang sistem ada masalah, kita harus bersiap update.", qs:[{q:"Kapan rapat diadakan?",o:["Pagi","Sore","Malam"],a:1},{q:"Siapa yang memberi tahu masalah sistem?",o:["Klien","Manajer","Insinyur"],a:1},{q:"Apa yang harus dipersiapkan?",o:["Update sistem","Makan siang","Laporan"],a:0}] },
+            { id:6, lvl:1, title:"Fasilitas Hotel", h:"早餐時間是早上七點到十點，在二樓餐廳。歡迎光臨！", p:"Zǎo cān shí jiān shì zǎo shàng qī diǎn dào shí diǎn, zài èr lóu cān tīng. Huān yíng guāng lín!", i:"Waktu sarapan adalah jam 7 sampai 10 pagi, di restoran lantai dua. Selamat datang!", qs:[{q:"Jam berapa sarapan berakhir?",o:["7 Pagi","9 Pagi","10 Pagi"],a:2},{q:"Di mana lokasi sarapan?",o:["Kamar","Lantai 2","Lantai 1"],a:1},{q:"Apa sapaan yang digunakan?",o:["Halo","Selamat Pagi","Selamat Datang"],a:2}] },
+            { id:7, lvl:2, title:"Check Out", h:"我要退房，這是我的鑰匙。你們的服務很好，房間也很漂亮。謝謝你們的幫忙。", p:"Wǒ yào tuì fáng, zhè shì wǒ de yào shi. Nǐ men de fú wù hěn hǎo, fáng jiān yě hěn piào liàng. Xiè xie nǐ men de bāng máng.", i:"Saya mau check out, ini kunci saya. Layanan kalian sangat baik, kamarnya juga sangat cantik. Terima kasih atas bantuan kalian.", qs:[{q:"Apa tujuan tamu?",o:["Pesan kamar","Check out","Minta kunci"],a:1},{q:"Apa yang diberikan ke resepsionis?",o:["Paspor","Kunci","Uang"],a:1},{q:"Bagaimana pendapat tamu tentang kamar?",o:["Kecil","Mahal","Cantik/Bagus"],a:2}] },
+            { id:8, lvl:3, title:"Keamanan Siber", h:"請不要忘記您的密碼，系統會自動登出。如果您有問題，請告訴工程師。", p:"Qǐng bú yào wàng jì nín de mì mǎ, xì tǒng huì zì dòng dēng chū. Rú guǒ nín yǒu wèn tí, qǐng gào sù gōng chéng shī.", i:"Tolong jangan lupakan password Anda, sistem akan otomatis log out. Jika Anda ada masalah, tolong beritahu engineer.", qs:[{q:"Apa yang tidak boleh dilupakan?",o:["Tas","Password","Kunci"],a:1},{q:"Apa yang terjadi jika diam terlalu lama?",o:["Sistem rusak","Sistem log out otomatis","Komputer mati"],a:1},{q:"Siapa yang harus dihubungi jika ada masalah?",o:["Manajer","Resepsionis","Insinyur/Engineer"],a:2}] },
+            { id:9, lvl:3, title:"Beli Minuman", h:"我要一杯珍珠奶茶，不要太甜。這個多少錢？太貴了，可以便宜一點嗎？", p:"Wǒ yào yì bēi zhēn zhū nǎi chá, bú yào tài tián. Zhè ge duō shǎo qián? Tài guì le, kě yǐ pián yí yì diǎn ma?", i:"Saya mau segelas boba tea, jangan terlalu manis. Ini berapa harganya? Terlalu mahal, bisa lebih murah sedikit?", qs:[{q:"Minuman apa yang dibeli?",o:["Kopi","Boba Tea","Teh Hijau"],a:1},{q:"Bagaimana rasanya yang diinginkan?",o:["Sangat manis","Jangan terlalu manis","Panas"],a:1},{q:"Kenapa dia menawar harga?",o:["Kurang uang","Terlalu mahal","Tidak enak"],a:1}] },
+            { id:10, lvl:1, title:"Wisata", h:"台北有很多好玩的地方。明天我們去博物館，後天去買東西。", p:"Tái běi yǒu hěn duō hǎo wán de dì fāng. Míng tiān wǒ men qù bó wù guǎn, hòu tiān qù mǎi dōng xī.", i:"Taipei punya banyak tempat yang menyenangkan. Besok kita pergi ke museum, lusa pergi belanja barang.", qs:[{q:"Kota apa yang dibahas?",o:["Beijing","Taipei","Tainan"],a:1},{q:"Ke mana mereka besok?",o:["Restoran","Museum","Mal"],a:1},{q:"Kapan mereka belanja?",o:["Hari ini","Besok","Lusa"],a:2}] }
         ];
 
-        // ==========================================
-        // 2. Navigasi Aman
-        // ==========================================
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
-            btn.classList.add('active');
-            if(tabId === 'bank') renderBank();
-            if(tabId === 'flashcard') filterCategory();
-        }
-
-        // ==========================================
-        // 3. Flashcard Anti-Crash
-        // ==========================================
-        function populateCategories() {
-            const select = document.getElementById('categorySelect');
-            select.innerHTML = '<option value="Semua">Semua Kategori</option>';
-            let categories = [...new Set(fullVocab.map(item => item.kategori || "Umum"))];
-            categories.forEach(cat => {
-                let option = document.createElement('option');
-                option.value = cat; option.textContent = cat;
-                select.appendChild(option);
-            });
-        }
-
-        function filterCategory() {
-            const selectedCat = document.getElementById('categorySelect').value;
-            activeDeck = selectedCat === "Semua" ? [...fullVocab] : fullVocab.filter(item => (item.kategori || "Umum") === selectedCat);
-            activeDeck.sort(() => Math.random() - 0.5); 
-            currentIndex = 0;
-            safeLoadCard(currentIndex);
-        }
-
-        function safeLoadCard(index) {
-            try {
-                if(activeDeck.length === 0) {
-                    document.getElementById('hanzi-text').textContent = "Kosong";
-                    return;
-                }
-                
-                let word = activeDeck[index];
-                if(!word || !word.hanzi) return; // Mencegah crash jika data rusak
-
-                let cleanHanzi = word.hanzi.replace(/\(.*\)/g, "");
-                let sentence = sentenceDB[cleanHanzi];
-                let isSentenceMode = document.getElementById('modeKalimatToggle').checked && sentence;
-
-                if(isSentenceMode) {
-                    document.getElementById('hanzi-text').textContent = sentence;
-                    document.getElementById('hanzi-text').style.fontSize = "1.5rem";
-                    document.getElementById('pinyin-text').textContent = word.hanzi + " (" + word.pinyin + ")";
-                    document.getElementById('arti-text').textContent = word.arti;
-                } else {
-                    document.getElementById('hanzi-text').textContent = word.hanzi;
-                    document.getElementById('hanzi-text').style.fontSize = "3.5rem";
-                    document.getElementById('pinyin-text').textContent = word.pinyin;
-                    document.getElementById('arti-text').textContent = word.arti;
-                }
-                
-                document.getElementById('cat-text').textContent = "Kategori: " + (word.kategori || "Umum");
-                isFlipped = false;
-                document.getElementById('flashcard').classList.remove('flipped');
-                document.getElementById('srs-buttons').style.display = "none";
-                document.getElementById('normal-buttons').style.display = "block";
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function flipCard() {
-            if(!isFlipped && activeDeck.length > 0) {
-                isFlipped = true;
-                document.getElementById('flashcard').classList.add('flipped');
-                document.getElementById('srs-buttons').style.display = "flex";
-                document.getElementById('normal-buttons').style.display = "none";
-            }
-        }
-
-        function answerCard(difficulty) {
-            if(difficulty === 'sulit') {
-                let card = activeDeck.splice(currentIndex, 1)[0];
-                activeDeck.splice(Math.min(currentIndex + 3, activeDeck.length), 0, card);
-            } else { currentIndex++; }
-            if(currentIndex >= activeDeck.length) {
-                alert("Hebat! Anda telah menyelesaikan deck ini.");
-                currentIndex = 0; activeDeck.sort(() => Math.random() - 0.5);
-            }
-            safeLoadCard(currentIndex);
-        }
-
-        function playAudio() {
-            if(activeDeck.length === 0) return;
-            let textToSpeak = activeDeck[currentIndex].hanzi;
-            if ('speechSynthesis' in window) {
-                let utterance = new SpeechSynthesisUtterance(textToSpeak);
-                utterance.lang = 'zh-TW'; utterance.rate = 0.85;
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        // ==========================================
-        // 4. Sistem CAT Anti-Crash
-        // ==========================================
-        let catQuestions = [];
-        let currentCatIndex = 0;
-        let catLevel = 1; 
-        let catScore = 0;
-        let catTimerInterval;
-        let timeLeft = 15;
-        let currentCorrectAnswer = "";
-        let testLength = 0; 
-        let examHistory = []; 
-
-        function startCAT() {
-            if(fullVocab.length < 5) return alert("Tambahkan minimal 5 kata di Bank Data.");
-            
-            document.getElementById('cat-start-screen').style.display = "none";
-            document.getElementById('cat-result-screen').style.display = "none";
-            document.getElementById('cat-review-screen').style.display = "none";
-            document.getElementById('cat-exam-screen').style.display = "block";
-            
-            examHistory = []; 
-            let uniqueVocabMap = new Map();
-            fullVocab.forEach(item => { if(item && item.hanzi) uniqueVocabMap.set(item.hanzi, item); });
-            let uniqueVocab = Array.from(uniqueVocabMap.values());
-            
-            let shuffled = uniqueVocab.sort(() => Math.random() - 0.5);
-            testLength = Math.min(30, shuffled.length); 
-            catQuestions = shuffled.slice(0, testLength);
-
-            currentCatIndex = 0;
-            catLevel = 1;
-            catScore = 0;
-            
-            loadCatQuestion();
-        }
-
-        function loadCatQuestion() {
-            if(currentCatIndex >= catQuestions.length) return finishCAT();
-
-            document.getElementById('cat-progress').textContent = `Soal ${currentCatIndex + 1} / ${testLength}`;
-            
-            let targetWord = catQuestions[currentCatIndex];
-            if(!targetWord || !targetWord.hanzi) { 
-                currentCatIndex++; return loadCatQuestion(); // Lewati kata yang rusak
-            }
-
-            let cleanHanzi = targetWord.hanzi.replace(/\(.*\)/g, ""); 
-            let hasLongSentence = sentenceDB[cleanHanzi] !== undefined;
-            
-            let qDisplay = document.getElementById('cat-question-display');
-            qDisplay.classList.remove('long-text'); 
-            
-            let questionText = "";
-            let pinyinText = "";
-            let options = [];
-            let displayTime = 15;
-            let currentPara = null;
-
-            if (catLevel >= 3 && paragraphDB.length > 0) {
-                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 3 (Membaca Paragraf)`;
-                currentPara = paragraphDB[Math.floor(Math.random() * paragraphDB.length)];
-                
-                questionText = `[BACAAN]\n${currentPara.text}\n\nQ: ${currentPara.question}`;
-                qDisplay.innerHTML = `<div style="font-size:1.1rem; border-bottom:1px solid #ccc; padding-bottom:10px; margin-bottom:10px;">${currentPara.text}</div>
-                                      <div style="font-size:1.3rem;">❓ ${currentPara.question}</div>`;
-                qDisplay.classList.add('long-text');
-                
-                pinyinText = "💡 Jangan baca per huruf, cari inti ceritanya.";
-                currentCorrectAnswer = currentPara.correct;
-                options = [...currentPara.options].sort(() => Math.random() - 0.5);
-                displayTime = 60; 
-            } 
-            else if (catLevel >= 2 && hasLongSentence) {
-                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 2 (Kalimat Rumpang)`;
-                questionText = sentenceDB[cleanHanzi];
-                qDisplay.textContent = questionText;
-                qDisplay.classList.add('long-text');
-                
-                pinyinText = "💡 Pilih Hanzi yang tepat.";
-                currentCorrectAnswer = targetWord.hanzi;
-                options = generateOptions(targetWord.hanzi, 'hanzi');
-                displayTime = 25; 
-            }
-            else {
-                document.getElementById('cat-level-indicator').textContent = `Tingkat Kesulitan: Level 1 (Kosakata Dasar)`;
-                questionText = targetWord.hanzi;
-                qDisplay.textContent = questionText;
-                
-                pinyinText = targetWord.pinyin;
-                currentCorrectAnswer = targetWord.arti;
-                options = generateOptions(targetWord.arti, 'arti');
-                displayTime = 15;
-            }
-
-            document.getElementById('cat-pinyin-display').textContent = pinyinText;
-
-            const optContainer = document.getElementById('cat-options-container');
-            optContainer.innerHTML = "";
-            options.forEach(opt => {
-                let btn = document.createElement('button');
-                btn.className = "cat-option-btn";
-                btn.textContent = opt;
-                btn.onclick = () => submitCatAnswer(opt, btn, questionText, catLevel, targetWord, currentPara);
-                optContainer.appendChild(btn);
-            });
-
-            startCatTimer(displayTime, questionText, catLevel, targetWord, currentPara);
-        }
-
-        function generateOptions(correctStr, keyType) {
-            let opts = [correctStr];
-            let pool = [...fullVocab].sort(() => Math.random() - 0.5);
-            for(let w of pool) {
-                if(opts.length >= 4) break;
-                if(w[keyType] !== correctStr && !opts.includes(w[keyType])) opts.push(w[keyType]);
-            }
-            return opts.sort(() => Math.random() - 0.5);
-        }
-
-        function startCatTimer(seconds, qText, lvl, wordObj, paraObj) {
-            clearInterval(catTimerInterval);
-            timeLeft = seconds;
-            document.getElementById('cat-timer').textContent = `⏳ ${timeLeft}s`;
-            
-            catTimerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('cat-timer').textContent = `⏳ ${timeLeft}s`;
-                if(timeLeft <= 0) {
-                    clearInterval(catTimerInterval);
-                    submitCatAnswer("TIMEOUT (Waktu Habis)", null, qText, lvl, wordObj, paraObj); 
-                }
-            }, 1000);
-        }
-
-        function submitCatAnswer(selectedStr, btnElement, qText, lvl, wordObj, paraObj) {
-            clearInterval(catTimerInterval);
-            document.querySelectorAll('.cat-option-btn').forEach(b => b.disabled = true);
-
-            let isCorrect = (selectedStr === currentCorrectAnswer);
-            let qType = paraObj ? 'paragraph' : (lvl >= 2 && sentenceDB[wordObj.hanzi.replace(/\(.*\)/g, "")] ? 'sentence' : 'word');
-
-            examHistory.push({
-                type: qType,
-                question: qText,
-                level: lvl,
-                targetWord: wordObj,
-                paraData: paraObj,
-                userAnswer: selectedStr,
-                correctAnswer: currentCorrectAnswer,
-                isCorrect: isCorrect
-            });
-
-            if(isCorrect) {
-                if(btnElement) { btnElement.style.backgroundColor = "var(--success)"; btnElement.style.color = "white"; }
-                catScore += catLevel; 
-                catLevel = Math.min(3, catLevel + 1); 
-            } else {
-                if(btnElement) { btnElement.style.backgroundColor = "var(--danger)"; btnElement.style.color = "white"; }
-                catLevel = Math.max(1, catLevel - 1); 
-            }
-
-            currentCatIndex++;
-            setTimeout(loadCatQuestion, 1500); 
-        }
-
-        function finishCAT() {
-            document.getElementById('cat-exam-screen').style.display = "none";
-            document.getElementById('cat-result-screen').style.display = "block";
-            
-            let maxPossibleScore = testLength * 3;
-            let percentage = (catScore / maxPossibleScore) * 100;
-            
-            let finalBand = "A2";
-            let desc = "Pemanasan B1.";
-            let motivationText = "🌱 <b>Tetap Semangat!</b> Setiap error adalah pembelajaran.";
-            
-            if(percentage >= 75) { 
-                finalBand = "B1 (Level 3)"; desc = "Selamat! Anda sukses beradaptasi dengan B1.";
-                motivationText = "🎯 <b>Skill Ekstensif Aktif!</b> Anda berhasil memecahkan logika kalimat rumpang dan teks panjang!";
-            } else if(percentage >= 40) { 
-                finalBand = "A2 (Lanjutan)"; desc = "Koneksi ke B1 sedang dibangun."; 
-            }
-            
-            document.getElementById('cat-final-score').textContent = finalBand;
-            document.getElementById('cat-final-desc').textContent = desc + ` (Skor: ${catScore} / ${maxPossibleScore})`;
-            document.getElementById('cat-motivation').innerHTML = motivationText;
-        }
-
-        function showReview() {
-            document.getElementById('cat-result-screen').style.display = "none";
-            document.getElementById('cat-review-screen').style.display = "block";
-            const container = document.getElementById('review-list-container');
-            container.innerHTML = "";
-            examHistory.forEach((item, index) => {
-                let div = document.createElement('div');
-                div.className = `review-item ${item.isCorrect ? 'review-correct' : 'review-wrong'}`;
-                
-                let badgeClass = item.isCorrect ? 'badge-benar' : 'badge-salah';
-                let badgeText = item.isCorrect ? '✔ BENAR' : '✖ SALAH';
-                
-                let explanation = "";
-                let displayQ = item.question;
-
-                if (item.type === 'paragraph') {
-                    displayQ = `<div style="font-size:0.9rem; margin-bottom:5px;">${item.paraData.text}</div><b>Q: ${item.paraData.question}</b>`;
-                    explanation = item.paraData.explanation;
-                } else if(item.type === 'sentence') {
-                    explanation = `Kalimat ini butuh kata <b>"${item.targetWord.arti}"</b>. Jawaban yang tepat: <b>${item.targetWord.hanzi}</b>.`;
-                } else {
-                    explanation = `Karakter <b>${item.targetWord.hanzi}</b> berarti <b>${item.targetWord.arti}</b>.`;
-                }
-
-                div.innerHTML = `
-                    <span class="badge-status ${badgeClass}">${badgeText} (Level ${item.level})</span>
-                    <div class="review-q">Q${index+1}: ${displayQ}</div>
-                    <div style="font-size:0.95rem;">Jawaban Anda: <b style="color:${item.isCorrect ? 'var(--success)' : 'var(--danger)'}">${item.userAnswer}</b></div>
-                    <div style="font-size:0.95rem; color:var(--success);">Jawaban Benar: <b>${item.correctAnswer}</b></div>
-                    <div class="review-explanation">📝 <b>Alasan:</b> ${explanation}</div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        // ==========================================
-        // 5. Fitur CSV & Database Failsafe
-        // ==========================================
-        document.getElementById('csvFileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(event) { parseCSV(event.target.result); };
-            reader.readAsText(file);
+        const parseListen = (str) => str.split('^').map((s,i) => {
+            const [t, h, p, a, optsStr, ans] = s.split('|');
+            return { id:i, type: t, h, p, a, opts: optsStr?optsStr.split(','):[], ans: parseInt(ans||0) };
         });
 
-        function parseCSV(text) {
-            const lines = text.split('\n');
-            let addedCount = 0;
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue; 
-                const columns = line.split(/[;,]/); 
-                if (columns.length >= 3) {
-                    if (columns[0].toLowerCase().includes('hanzi')) continue; 
-                    let newHanzi = columns[0].trim();
-                    let newArti = columns[2].trim();
-                    if(newHanzi && newArti && !fullVocab.some(item => item.hanzi === newHanzi)) {
-                        fullVocab.push({
-                            hanzi: newHanzi,
-                            pinyin: columns[1].trim(),
-                            arti: newArti,
-                            kategori: columns.length >= 4 ? columns[3].trim() : "Kosakata Baru"
-                        });
-                        addedCount++;
-                    }
+        const LISTENING = parseListen(
+            "A|飯店|fàn diàn|Hotel|飯店,房間,餐廳,捷運|0^A|網路|wǎng lù|Internet|電腦,密碼,網路,系統|2^A|密碼|mì mǎ|Password|鑰匙,護照,密碼,行李|2^A|珍珠奶茶|zhēn zhū nǎi chá|Boba tea|珍珠奶茶,早餐,午餐,晚餐|0^A|便宜|pián yí|Murah|貴,方便,漂亮,便宜|3^A|退房|tuì fáng|Check out|訂房,退房,開始,結束|1^B|登入系統|dēng rù xì tǒng|Login sistem|Update sistem,Login sistem,Server down,Perbaikan|1^B|客房服務|kè fáng fú wù|Layanan kamar|Layanan kamar,Pesan kamar,Kunci kamar,Membersihkan kamar|0^B|維修電腦|wéi xiū diàn nǎo|Perbaikan komputer|Beli komputer,Perbaikan komputer,Jual komputer,Layar komputer|1^B|我要訂房|wǒ yào dìng fáng|Saya ingin pesan kamar|Saya mau check out,Saya ingin pesan kamar,Saya lapar,Saya minta password|1^B|網路很慢|wǎng lù hěn màn|Internet sangat lambat|Internet sangat lambat,Komputer mati,Server down,Sistem update|0^C|明天有___ (Ujian)|míng tiān yǒu kǎo shì|Besok ada ujian|考試,會議,工作,客戶|0^C|系統___ (Update)|xì tǒng gēng xīn|Update sistem|下載,更新,登入,維修|1^C|房間很___ (Bersih)|fáng jiān hěn gān jìng|Kamar sangat bersih|漂亮,方便,乾淨,貴|2^C|這個太___ (Mahal)|zhè ge tài guì|Ini terlalu mahal|便宜,貴,好,多|1^C|我的___在哪裡 (Paspor)|wǒ de hù zhào zài nǎ lǐ|Paspor saya di mana?|鑰匙,行李,護照,電腦|2^D|我在台北工作|wǒ zài Tái běi gōng zuò|Saya bekerja di Taipei|我,在,台北,工作|0^D|搭捷運很方便|dā jié yùn hěn fāng biàn|Naik MRT sangat praktis|搭,捷運,很,方便|0^D|需要幫忙嗎|xū yào bāng máng ma|Butuh bantuan?|需要,幫忙,嗎|0^D|現在會議開始|xiàn zài huì yì kāi shǐ|Rapat dimulai sekarang|現在,會議,開始|0^D|昨天我很累|zuó tiān wǒ hěn lèi|Kemarin saya sangat lelah|昨天,我,很,累|0"
+        );
+
+        const WRITING = [
+            {h:'一', p:'yī', a:'Satu'}, {h:'二', p:'èr', a:'Dua'}, {h:'三', p:'sān', a:'Tiga'}, {h:'人', p:'rén', a:'Orang'},
+            {h:'大', p:'dà', a:'Besar'}, {h:'天', p:'tiān', a:'Hari/Langit'}, {h:'水', p:'shuǐ', a:'Air'}, {h:'火', p:'huǒ', a:'Api'},
+            {h:'電', p:'diàn', a:'Listrik/Elektronik'}, {h:'網', p:'wǎng', a:'Jaring/Net'}, {h:'房', p:'fáng', a:'Ruangan/Kamar'},
+            {h:'車', p:'chē', a:'Mobil/Kendaraan'}, {h:'吃', p:'chī', a:'Makan'}, {h:'喝', p:'hē', a:'Minum'}, 
+            {h:'看', p:'kàn', a:'Melihat/Membaca'}, {h:'聽', p:'tīng', a:'Mendengar'}, {h:'說', p:'shuō', a:'Berbicara'}, 
+            {h:'寫', p:'xiě', a:'Menulis'}, {h:'學', p:'xué', a:'Belajar'}, {h:'門', p:'mén', a:'Pintu'}
+        ];
+
+        // ---------------------------------------------------------
+        // HELPER FUNCTIONS
+        // ---------------------------------------------------------
+        const getToneColor = (tone) => {
+            switch(tone) {
+                case 1: return 'text-blue-500';
+                case 2: return 'text-green-500';
+                case 3: return 'text-orange-500';
+                case 4: return 'text-[#C0392B]'; 
+                default: return 'text-gray-500';
+            }
+        };
+
+        const getLevel = (xp) => {
+            if (xp >= 601) return { n: '仙 (Sage)', c: 'text-purple-600', i: '🧙‍♂️' };
+            if (xp >= 301) return { n: '鳳 (Phoenix)', c: 'text-[#D4AF37]', i: '🦅' };
+            if (xp >= 101) return { n: '虎 (Tiger)', c: 'text-orange-600', i: '🐅' };
+            return { n: '龍 (Dragon)', c: 'text-[#C0392B]', i: '🐉' };
+        };
+
+        // Simple robust CSV line parser handling basic quotes
+        function parseCSVLine(text) {
+            let ret = [];
+            let cur = '';
+            let inQuote = false;
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                if (c === '"') {
+                    if (inQuote && text[i+1] === '"') { cur += '"'; i++; }
+                    else { inQuote = !inQuote; }
+                } else if (c === ',' && !inQuote) {
+                    ret.push(cur.trim());
+                    cur = '';
+                } else {
+                    cur += c;
                 }
             }
-            if (addedCount > 0) {
-                saveVocab(); populateCategories(); filterCategory(); renderBank(); 
-                alert(`Berhasil menambahkan ${addedCount} kosa kata baru!`);
-            }
-            document.getElementById('csvFileInput').value = ""; 
+            ret.push(cur.trim());
+            return ret;
         }
 
-        function saveVocab() { localStorage.setItem('tocflVocab', JSON.stringify(fullVocab)); }
-        
-        function clearBank() {
-            if(confirm("Yakin ingin menghapus SEMUA kosakata?")) {
-                fullVocab = []; saveVocab(); populateCategories(); renderBank();
-                location.reload();
-            }
-        }
-
-        function fixDatabase() {
-            localStorage.removeItem('tocflVocab');
-            alert("Database di-reset untuk memperbaiki error! Silakan muat ulang CSV Anda.");
-            location.reload();
-        }
-
-        function renderBank() {
-            document.getElementById('bank-total').textContent = fullVocab.length;
-            const container = document.getElementById('bank-list-container');
-            container.innerHTML = "";
-            fullVocab.forEach(item => {
-                if(!item || !item.hanzi) return;
-                let div = document.createElement('div');
-                div.className = "bank-item";
-                div.innerHTML = `
-                    <div class="bank-hanzi">${item.hanzi}</div>
-                    <div style="font-size:0.9rem; color:#666;">${item.pinyin} | ${item.arti}</div>
-                    <div style="font-size:0.8rem; background:#e9ecef; display:inline-block; padding:2px 5px; border-radius:3px; margin-top:3px;">${item.kategori}</div>
-                `;
-                container.appendChild(div);
+        // ---------------------------------------------------------
+        // MAIN APP COMPONENT
+        // ---------------------------------------------------------
+        function HanziLearnApp() {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [sidebarOpen, setSidebarOpen] = useState(false);
+            const [state, setState] = useState(() => {
+                const saved = localStorage.getItem('hanziState');
+                return saved ? JSON.parse(saved) : {
+                    name: 'Pelajar',
+                    xp: 0,
+                    streak: 1,
+                    lastLogin: new Date().toDateString(),
+                    progress: { flashcard: 0, reading: 0, listening: 0, speaking: 0, writing: 0 },
+                    fcQueue: FLASHCARDS.map((_, i) => i),
+                    readDone: [],
+                    customVocab: [] // Tempat simpan kosa kata dari CSV
+                };
             });
+
+            // Handle Daily Streak
+            useEffect(() => {
+                const today = new Date().toDateString();
+                if (state.lastLogin !== today) {
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    
+                    let newStreak = state.streak;
+                    if (state.lastLogin === yesterday.toDateString()) {
+                        newStreak++;
+                    } else {
+                        newStreak = 1;
+                    }
+                    updateState({ streak: newStreak, lastLogin: today });
+                }
+            }, []);
+
+            useEffect(() => {
+                localStorage.setItem('hanziState', JSON.stringify(state));
+            }, [state]);
+
+            const updateState = (updates) => setState(prev => ({ ...prev, ...updates }));
+            
+            const addXP = (amount, module) => {
+                setState(prev => {
+                    const nextProg = { ...prev.progress };
+                    if (module && nextProg[module] < 100) {
+                        nextProg[module] = Math.min(100, nextProg[module] + amount);
+                    }
+                    return { ...prev, xp: prev.xp + amount, progress: nextProg };
+                });
+            };
+
+            // Gabungkan Flashcard default dengan kustom
+            const allFlashcards = useMemo(() => {
+                return [...FLASHCARDS, ...(state.customVocab || [])];
+            }, [state.customVocab]);
+
+            // Speaking pakai 40 kata (default + kustom)
+            const speakingCards = useMemo(() => {
+                return allFlashcards.slice(0, 40).map((o,i)=>({id:i,...o}));
+            }, [allFlashcards]);
+
+            const navItems = [
+                { id: 'dashboard', icon: 'layout-dashboard', label: 'Dashboard' },
+                { id: 'flashcard', icon: 'layers', label: 'Flashcard' },
+                { id: 'reading', icon: 'book-open', label: 'Reading' },
+                { id: 'listening', icon: 'headphones', label: 'Listening' },
+                { id: 'speaking', icon: 'mic', label: 'Speaking' },
+                { id: 'writing', icon: 'pen-tool', label: 'Writing' },
+                { id: 'settings', icon: 'settings', label: 'Pengaturan' }
+            ];
+
+            // ---------------------------------------------------------
+            // 1. DASHBOARD
+            // ---------------------------------------------------------
+            const Dashboard = () => {
+                const lvl = getLevel(state.xp);
+                const wordOfTheDay = useMemo(() => allFlashcards[Math.floor(Math.random() * allFlashcards.length)], [allFlashcards]);
+
+                const ProgressRing = ({ label, pct }) => (
+                    <div className="flex flex-col items-center">
+                        <div className="relative w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                            <svg className="w-full h-full absolute top-0 left-0" viewBox="0 0 36 36">
+                                <path className="text-[#E0E0E0]" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path className="text-[#C0392B]" strokeWidth="3" strokeDasharray={`${pct}, 100`} stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <span className="text-xs font-bold font-sans">{Math.floor(pct)}%</span>
+                        </div>
+                        <span className="text-xs mt-2 text-gray-600 font-sans">{label}</span>
+                    </div>
+                );
+
+                return (
+                    <div className="p-4 md:p-8 space-y-6 max-w-5xl mx-auto animate-fade-in">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <div>
+                                <h1 className="text-3xl font-serif-sc text-[#1A1A2E]">歡迎回來!</h1>
+                                <p className="text-gray-500 mt-1">Selamat datang kembali, {state.name}!</p>
+                            </div>
+                            <div className="flex items-center gap-6 mt-4 md:mt-0">
+                                <div className="text-center">
+                                    <div className="flex items-center justify-center text-[#C0392B] font-bold text-xl">
+                                        <Icon name="flame" className="w-6 h-6 mr-1" /> {state.streak}
+                                    </div>
+                                    <span className="text-xs text-gray-400">Hari Streak</span>
+                                </div>
+                                <div className="text-center">
+                                    <div className={`font-bold text-xl ${lvl.c} flex items-center justify-center`}>
+                                        <Icon name="award" className="w-6 h-6 mr-1" /> {state.xp}
+                                    </div>
+                                    <span className="text-xs text-gray-400">Total XP</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="md:col-span-2 space-y-6">
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                                    <h2 className="text-lg font-bold text-[#1A1A2E] mb-4 border-b pb-2">Progress Belajar</h2>
+                                    <div className="flex justify-around flex-wrap gap-4">
+                                        <ProgressRing label="Flashcard" pct={state.progress.flashcard || 0} />
+                                        <ProgressRing label="Reading" pct={state.progress.reading || 0} />
+                                        <ProgressRing label="Listening" pct={state.progress.listening || 0} />
+                                        <ProgressRing label="Speaking" pct={state.progress.speaking || 0} />
+                                        <ProgressRing label="Writing" pct={state.progress.writing || 0} />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {navItems.slice(1,5).map(it => (
+                                        <button key={it.id} onClick={() => setActiveTab(it.id)} className="flex flex-col items-center justify-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-[#D4AF37] hover:shadow-md transition-all">
+                                            <div className="text-[#C0392B] mb-2"><Icon name={it.icon} className="w-8 h-8"/></div>
+                                            <span className="font-medium text-sm text-[#1A1A2E]">{it.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="bg-gradient-to-br from-[#1A1A2E] to-gray-900 rounded-xl shadow-lg p-6 text-white text-center relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                                        <span className="text-6xl font-serif-sc">學</span>
+                                    </div>
+                                    <h3 className="text-sm text-gray-300 tracking-widest uppercase mb-4">Level Anda</h3>
+                                    <div className="text-6xl mb-2">{lvl.i}</div>
+                                    <div className={`text-2xl font-bold ${lvl.c} drop-shadow-md`}>{lvl.n}</div>
+                                    <p className="text-xs mt-4 text-gray-400">Kumpulkan XP untuk naik level!</p>
+                                </div>
+
+                                <div className="bg-[#FAFAFA] border border-[#D4AF37]/30 rounded-xl shadow-sm p-6 text-center">
+                                    <h3 className="text-sm font-bold text-[#D4AF37] mb-4 uppercase tracking-wider">Kata Hari Ini</h3>
+                                    <div className="text-6xl font-serif-sc text-[#1A1A2E] mb-2">{wordOfTheDay.h}</div>
+                                    <div className={`text-lg font-bold mb-1 ${getToneColor(wordOfTheDay.t)}`}>{wordOfTheDay.p}</div>
+                                    <div className="text-sm text-gray-600 italic">{wordOfTheDay.a}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            // ---------------------------------------------------------
+            // 2. FLASHCARD
+            // ---------------------------------------------------------
+            const FlashcardModule = () => {
+                // Initialize local queue with global state, ensuring indices don't exceed current allFlashcards
+                const [queue, setQueue] = useState(() => {
+                    const validQueue = state.fcQueue.filter(i => i < allFlashcards.length);
+                    return validQueue.length > 0 ? validQueue : [...Array(allFlashcards.length).keys()];
+                });
+                const [isFlipped, setIsFlipped] = useState(false);
+                const [sessionStats, setSessionStats] = useState({ seen: 0, known: 0 });
+
+                const currentIdx = queue[0];
+                const card = allFlashcards[currentIdx];
+
+                const nextCard = (know) => {
+                    setIsFlipped(false);
+                    setTimeout(() => {
+                        const newQueue = [...queue];
+                        const item = newQueue.shift();
+                        if (!know) {
+                            const insertIdx = Math.min(newQueue.length, Math.floor(Math.random() * 5) + 3);
+                            newQueue.splice(insertIdx, 0, item);
+                        } else {
+                            addXP(5, 'flashcard');
+                            updateState({ fcQueue: newQueue });
+                        }
+                        
+                        if (newQueue.length === 0) {
+                            alert("Selesai! Anda telah me-review semua kartu.");
+                            setQueue([...Array(allFlashcards.length).keys()]);
+                        } else {
+                            setQueue(newQueue);
+                        }
+                        setSessionStats(s => ({ seen: s.seen + 1, known: s.known + (know ? 1 : 0) }));
+                    }, 300);
+                };
+
+                return (
+                    <div className="max-w-2xl mx-auto p-4 md:p-8 flex flex-col items-center min-h-[80vh]">
+                        <div className="w-full flex justify-between items-center mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                            <div>
+                                <h2 className="text-xl font-bold text-[#1A1A2E]">Flashcards</h2>
+                                <p className="text-xs text-gray-500">Tersisa: {queue.length} kartu</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm font-bold text-[#C0392B]">Sesi Ini</p>
+                                <p className="text-xs text-gray-500">Dilihat: {sessionStats.seen} | Tahu: {sessionStats.known}</p>
+                            </div>
+                        </div>
+
+                        {card && (
+                            <div className="w-full max-w-sm aspect-[3/4] perspective-1000 mb-8">
+                                <div 
+                                    className={`w-full h-full relative transition-transform duration-500 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
+                                    onClick={() => setIsFlipped(!isFlipped)}
+                                >
+                                    {/* Front */}
+                                    <div className="absolute w-full h-full backface-hidden bg-[#FAFAFA] rounded-2xl shadow-xl border-2 border-gray-100 flex flex-col items-center justify-center p-8 text-center">
+                                        <span className="text-7xl md:text-8xl font-serif-sc text-[#1A1A2E]">{card.h}</span>
+                                        <span className="mt-8 text-sm text-gray-400">Ketuk untuk membalik</span>
+                                    </div>
+                                    
+                                    {/* Back */}
+                                    <div className="absolute w-full h-full backface-hidden bg-white rounded-2xl shadow-xl border-2 border-[#D4AF37]/50 flex flex-col items-center justify-center p-6 md:p-8 text-center rotate-y-180">
+                                        <span className="text-4xl md:text-5xl font-serif-sc text-[#1A1A2E] mb-4">{card.h}</span>
+                                        <span className={`text-xl md:text-2xl font-bold mb-2 ${getToneColor(card.t)}`}>{card.p}</span>
+                                        <span className="text-lg text-gray-700 font-medium mb-8">{card.a}</span>
+                                        
+                                        {(card.kh || card.ka) && (
+                                            <div className="w-full bg-gray-50 p-4 rounded-lg text-left border border-gray-200">
+                                                {card.kh && <p className="font-serif-sc text-lg text-[#1A1A2E] mb-1">{card.kh}</p>}
+                                                {card.ka && <p className="text-sm text-gray-600 italic">{card.ka}</p>}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {isFlipped ? (
+                            <div className="flex gap-4 w-full max-w-sm">
+                                <button onClick={() => nextCard(false)} className="flex-1 py-4 bg-red-100 text-[#C0392B] rounded-xl font-bold hover:bg-red-200 transition">Tidak Tahu ✗</button>
+                                <button onClick={() => nextCard(true)} className="flex-1 py-4 bg-green-100 text-green-700 rounded-xl font-bold hover:bg-green-200 transition">Tahu ✓</button>
+                            </div>
+                        ) : (
+                            <div className="h-14"></div>
+                        )}
+                    </div>
+                );
+            };
+
+            // ---------------------------------------------------------
+            // 3. READING
+            // ---------------------------------------------------------
+            const ReadingModule = () => {
+                const [selectedIdx, setSelectedIdx] = useState(0);
+                const [mode, setMode] = useState('all');
+                const [answers, setAnswers] = useState({});
+                const [score, setScore] = useState(null);
+
+                const text = READING_TEXTS[selectedIdx];
+                const isDone = state.readDone.includes(text.id);
+
+                const checkAnswers = () => {
+                    let correct = 0;
+                    text.qs.forEach((q, i) => { if(answers[i] === q.a) correct++; });
+                    setScore(correct);
+                    if (correct === text.qs.length && !isDone) {
+                        addXP(15, 'reading');
+                        updateState({ readDone: [...state.readDone, text.id] });
+                    }
+                };
+
+                return (
+                    <div className="max-w-5xl mx-auto p-4 md:p-8 flex flex-col md:flex-row gap-8">
+                        <div className="w-full md:w-1/3 space-y-2 max-h-[80vh] overflow-y-auto pr-2">
+                            <h3 className="font-bold text-gray-500 uppercase text-xs mb-4">Daftar Bacaan</h3>
+                            {READING_TEXTS.map((t, idx) => (
+                                <button 
+                                    key={t.id} 
+                                    onClick={() => { setSelectedIdx(idx); setAnswers({}); setScore(null); }}
+                                    className={`w-full text-left p-4 rounded-xl border transition flex items-center justify-between
+                                        ${selectedIdx === idx ? 'bg-white border-[#C0392B] shadow-md' : 'bg-gray-50 border-transparent hover:bg-white'}`}
+                                >
+                                    <div>
+                                        <div className="text-xs text-[#D4AF37] font-bold mb-1">Level {t.lvl}</div>
+                                        <div className="font-bold text-[#1A1A2E]">{t.title}</div>
+                                    </div>
+                                    {state.readDone.includes(t.id) && <Icon name="check" className="text-green-500 w-5 h-5" />}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="w-full md:w-2/3 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+                            <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 pb-4 border-b gap-4">
+                                <h2 className="text-2xl font-bold">{text.title}</h2>
+                                <div className="flex bg-gray-100 rounded-lg p-1 text-sm self-start">
+                                    <button onClick={()=>setMode('hanzi')} className={`px-3 py-1 rounded-md ${mode==='hanzi'?'bg-white shadow text-[#C0392B] font-bold':''}`}>Hanzi</button>
+                                    <button onClick={()=>setMode('pinyin')} className={`px-3 py-1 rounded-md ${mode==='pinyin'?'bg-white shadow text-[#C0392B] font-bold':''}`}>+Pinyin</button>
+                                    <button onClick={()=>setMode('all')} className={`px-3 py-1 rounded-md ${mode==='all'?'bg-white shadow text-[#C0392B] font-bold':''}`}>Semua</button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6 mb-12 min-h-[150px]">
+                                <p className="text-3xl md:text-4xl font-serif-sc text-[#1A1A2E] leading-loose tracking-wide">{text.h}</p>
+                                {(mode === 'pinyin' || mode === 'all') && <p className="text-lg text-blue-700 font-medium leading-relaxed">{text.p}</p>}
+                                {mode === 'all' && <p className="text-md text-gray-600 italic border-l-4 border-[#D4AF37] pl-4 py-2 bg-yellow-50/50">{text.i}</p>}
+                            </div>
+
+                            <div className="bg-[#FAFAFA] p-4 md:p-6 rounded-xl border border-gray-200">
+                                <h3 className="font-bold text-lg mb-4 flex items-center">
+                                    <Icon name="award" className="w-5 h-5 mr-2 text-[#D4AF37]"/> Kuis Pemahaman
+                                </h3>
+                                {text.qs.map((q, i) => (
+                                    <div key={i} className="mb-6">
+                                        <p className="font-medium mb-3">{i+1}. {q.q}</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                            {q.o.map((opt, optIdx) => {
+                                                const isSelected = answers[i] === optIdx;
+                                                const isCorrect = score !== null && q.a === optIdx;
+                                                const isWrong = score !== null && isSelected && q.a !== optIdx;
+                                                return (
+                                                    <button 
+                                                        key={optIdx}
+                                                        onClick={() => score===null && setAnswers({...answers, [i]: optIdx})}
+                                                        className={`p-3 rounded-lg border text-sm text-left transition
+                                                            ${isSelected && score===null ? 'border-[#C0392B] bg-red-50 text-[#C0392B]' : 'border-gray-200 bg-white hover:border-gray-300'}
+                                                            ${isCorrect ? 'border-green-500 bg-green-50 text-green-700 font-bold' : ''}
+                                                            ${isWrong ? 'border-red-500 bg-red-50 text-red-700 line-through' : ''}
+                                                        `}
+                                                        disabled={score !== null}
+                                                    >
+                                                        {opt}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {score === null ? (
+                                    <button 
+                                        onClick={checkAnswers} 
+                                        disabled={Object.keys(answers).length < text.qs.length}
+                                        className="w-full py-3 bg-[#1A1A2E] text-white rounded-xl font-bold disabled:opacity-50 mt-4 hover:bg-gray-800 transition"
+                                    >
+                                        Periksa Jawaban
+                                    </button>
+                                ) : (
+                                    <div className={`p-4 rounded-xl text-center font-bold ${score === text.qs.length ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+                                        Skor: {score} / {text.qs.length}
+                                        {score === text.qs.length ? ' (Sempurna! +15 XP)' : ' (Belum sempurna, ulangi yuk)'}
+                                        <button onClick={() => { setScore(null); setAnswers({}); }} className="block mx-auto mt-2 text-sm underline font-normal text-[#C0392B]">Ulangi Kuis</button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            // ---------------------------------------------------------
+            // 4. LISTENING
+            // ---------------------------------------------------------
+            const ListeningModule = () => {
+                const [qIdx, setQIdx] = useState(0);
+                const [rate, setRate] = useState(1);
+                const [selected, setSelected] = useState(null);
+                const [result, setResult] = useState(null);
+                const [orderAnswers, setOrderAnswers] = useState([]);
+
+                const q = LISTENING[qIdx];
+                
+                const playAudio = useCallback(() => {
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const u = new SpeechSynthesisUtterance(q.h);
+                        u.lang = 'zh-TW';
+                        u.rate = rate;
+                        window.speechSynthesis.speak(u);
+                    } else {
+                        alert("Browser Anda tidak mendukung Text-to-Speech.");
+                    }
+                }, [q, rate]);
+
+                const handleSelect = (idx) => {
+                    if(result) return;
+                    setSelected(idx);
+                    const isCorrect = idx === q.ans;
+                    setResult(isCorrect);
+                    if (isCorrect) addXP(10, 'listening');
+                };
+
+                const handleOrderSelect = (word) => {
+                    if(result) return;
+                    setOrderAnswers([...orderAnswers, word]);
+                };
+
+                const checkOrder = () => {
+                    const isCorrect = orderAnswers.join('') === q.h;
+                    setResult(isCorrect);
+                    if (isCorrect) addXP(10, 'listening');
+                };
+
+                const nextQ = () => {
+                    setResult(null); setSelected(null); setOrderAnswers([]);
+                    setQIdx((prev) => (prev + 1) % LISTENING.length);
+                };
+
+                return (
+                    <div className="max-w-2xl mx-auto p-4 md:p-8 flex flex-col items-center">
+                        <div className="w-full bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <div className="bg-[#1A1A2E] text-white text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold">
+                                    Tipe {q.type}
+                                </div>
+                                <div className="flex gap-2 bg-gray-100 p-1 rounded-lg">
+                                    {[0.6, 1, 1.2].map(r => (
+                                        <button key={r} onClick={()=>setRate(r)} className={`px-2 py-1 text-xs rounded ${rate===r?'bg-white shadow text-[#C0392B] font-bold':''}`}>{r}x</button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="text-center py-12 flex flex-col items-center">
+                                <button onClick={playAudio} className="w-20 h-20 bg-[#C0392B] rounded-full flex items-center justify-center text-white hover:scale-105 active:scale-95 transition shadow-lg mb-6">
+                                    <Icon name="volume-2" className="w-10 h-10 ml-1" />
+                                </button>
+                                <p className="text-gray-500 text-sm">Dengarkan audio dan jawab pertanyaan</p>
+                            </div>
+
+                            <div className="mt-4 w-full">
+                                {q.type === 'C' && (
+                                    <div className="text-2xl font-serif-sc text-center mb-6 bg-gray-50 p-4 rounded-xl border">
+                                        {q.h.replace(q.opts[q.ans], '___')}
+                                    </div>
+                                )}
+
+                                {(q.type === 'A' || q.type === 'B' || q.type === 'C') && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {q.opts.map((opt, i) => {
+                                            let stateClass = "bg-white hover:bg-gray-50 border-gray-200";
+                                            if (result !== null) {
+                                                if (i === q.ans) stateClass = "bg-green-100 border-green-500 text-green-800 font-bold";
+                                                else if (i === selected) stateClass = "bg-red-100 border-red-500 text-red-800 line-through";
+                                            } else if (selected === i) {
+                                                stateClass = "bg-red-50 border-[#C0392B] text-[#C0392B]";
+                                            }
+
+                                            return (
+                                                <button key={i} onClick={() => handleSelect(i)} disabled={result !== null} className={`p-4 border rounded-xl transition text-lg ${q.type==='A'?'font-serif-sc text-2xl':''} ${stateClass}`}>
+                                                    {opt}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {q.type === 'D' && (
+                                    <div className="w-full">
+                                        <div className="min-h-16 flex flex-wrap gap-2 mb-4 p-4 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
+                                            {orderAnswers.map((w,i) => <span key={i} className="px-4 py-2 bg-[#1A1A2E] text-white rounded shadow font-serif-sc text-xl">{w}</span>)}
+                                        </div>
+                                        <div className="flex flex-wrap gap-3 justify-center mb-6">
+                                            {q.opts.filter(w => orderAnswers.filter(a=>a===w).length < q.opts.filter(a=>a===w).length).map((w,i) => (
+                                                <button key={i} onClick={()=>handleOrderSelect(w)} disabled={result!==null} className="px-4 py-2 bg-white border border-gray-300 rounded shadow hover:border-[#C0392B] font-serif-sc text-xl">{w}</button>
+                                            ))}
+                                        </div>
+                                        {result === null && <button onClick={checkOrder} disabled={orderAnswers.length !== q.opts.length} className="w-full py-3 bg-[#C0392B] text-white rounded-xl font-bold disabled:opacity-50">Cek Susunan</button>}
+                                    </div>
+                                )}
+                            </div>
+
+                            {result !== null && (
+                                <div className={`mt-8 p-6 rounded-xl border w-full ${result ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                                    <h4 className={`text-xl font-bold mb-2 flex items-center ${result ? 'text-green-700' : 'text-red-700'}`}>
+                                        {result ? <><Icon name="check" className="mr-2"/> Tepat Sekali!</> : <><Icon name="x" className="mr-2"/> Kurang Tepat</>}
+                                    </h4>
+                                    <p className="text-gray-700 mb-1">Teks: <span className="font-serif-sc text-xl ml-1">{q.h}</span></p>
+                                    <p className="text-gray-700 mb-1">Pinyin: <span className="text-blue-600 font-mono ml-1">{q.p}</span></p>
+                                    <p className="text-gray-700">Arti: <span className="italic ml-1">{q.a}</span></p>
+                                    <button onClick={nextQ} className="mt-4 w-full py-3 bg-white border border-gray-300 rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center">
+                                        Lanjut <Icon name="chevron-right" className="w-5 h-5 ml-2" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            // ---------------------------------------------------------
+            // 5. SPEAKING
+            // ---------------------------------------------------------
+            const SpeakingModule = () => {
+                const [qIdx, setQIdx] = useState(0);
+                const [isRecording, setIsRecording] = useState(false);
+                const [transcript, setTranscript] = useState('');
+                const [evalResult, setEvalResult] = useState(null);
+                const [apiError, setApiError] = useState(false);
+                const recognitionRef = useRef(null);
+
+                const q = speakingCards[qIdx];
+
+                useEffect(() => {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    if (SpeechRecognition) {
+                        recognitionRef.current = new SpeechRecognition();
+                        recognitionRef.current.lang = 'zh-TW';
+                        recognitionRef.current.continuous = false;
+                        recognitionRef.current.interimResults = false;
+
+                        recognitionRef.current.onresult = (event) => {
+                            const res = event.results[0][0].transcript;
+                            setTranscript(res);
+                            evaluate(res);
+                        };
+                        recognitionRef.current.onerror = (e) => {
+                            console.error(e);
+                            setIsRecording(false);
+                            if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+                                setApiError("Izin mikrofon ditolak atau layanan tidak tersedia.");
+                            }
+                        };
+                        recognitionRef.current.onend = () => setIsRecording(false);
+                    } else {
+                        setApiError("Browser Anda tidak mendukung Web Speech API. Silakan gunakan Google Chrome/Edge, atau lakukan Self-Assessment.");
+                    }
+                }, [q]);
+
+                const playAudio = () => {
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const u = new SpeechSynthesisUtterance(q.h);
+                        u.lang = 'zh-TW';
+                        window.speechSynthesis.speak(u);
+                    }
+                };
+
+                const toggleRecord = () => {
+                    if (!recognitionRef.current) return;
+                    if (isRecording) {
+                        recognitionRef.current.stop();
+                    } else {
+                        setTranscript('');
+                        setEvalResult(null);
+                        try {
+                            recognitionRef.current.start();
+                            setIsRecording(true);
+                        } catch(e) {
+                            console.error(e);
+                        }
+                    }
+                };
+
+                const evaluate = (spoken) => {
+                    const target = q.h;
+                    let matches = 0;
+                    const resultCharMap = target.split('').map(char => {
+                        const isMatch = spoken.includes(char);
+                        if (isMatch) matches++;
+                        return { char, isMatch };
+                    });
+                    
+                    const score = Math.round((matches / target.length) * 100);
+                    setEvalResult({ score, chars: resultCharMap });
+                    if (score >= 70) addXP(20, 'speaking');
+                };
+
+                const manualSuccess = () => {
+                    addXP(20, 'speaking');
+                    setQIdx((i) => (i + 1) % speakingCards.length);
+                };
+
+                if(!q) return <div className="p-8 text-center">Loading...</div>;
+
+                return (
+                    <div className="max-w-xl mx-auto p-4 md:p-8">
+                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-lg border border-gray-100 flex flex-col items-center text-center">
+                            <div className="w-full flex justify-between text-gray-400 text-sm mb-8">
+                                <span>Frasa {qIdx + 1} / {speakingCards.length}</span>
+                                <button onClick={()=>setQIdx((i)=> (i+1)%speakingCards.length)} className="hover:text-black">Lewati</button>
+                            </div>
+
+                            <div className="mb-12">
+                                <h1 className="text-5xl md:text-6xl font-serif-sc text-[#1A1A2E] mb-6 tracking-widest">{q.h}</h1>
+                                <p className={`text-2xl font-bold mb-2 ${getToneColor(q.t)}`}>{q.p}</p>
+                                <p className="text-gray-500">{q.a}</p>
+                            </div>
+
+                            {apiError ? (
+                                <div className="w-full bg-orange-50 border border-orange-200 p-4 rounded-xl mb-8">
+                                    <p className="text-orange-800 text-sm mb-4">{apiError}</p>
+                                    <div className="flex gap-2">
+                                        <button onClick={playAudio} className="flex-1 py-3 bg-white border border-gray-300 rounded-lg font-bold flex items-center justify-center text-sm">
+                                            <Icon name="volume-2" className="w-4 h-4 mr-2" /> Dengar
+                                        </button>
+                                        <button onClick={manualSuccess} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold text-sm">
+                                            Saya bisa ✓
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex gap-4 w-full mb-12">
+                                    <button onClick={playAudio} className="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-[#1A1A2E] rounded-2xl font-bold flex items-center justify-center transition">
+                                        <Icon name="volume-2" className="w-5 h-5 mr-2" /> Dengar
+                                    </button>
+                                    <button onClick={toggleRecord} className={`flex-1 py-4 text-white rounded-2xl font-bold flex items-center justify-center transition shadow-md ${isRecording ? 'bg-red-600 animate-pulse' : 'bg-[#C0392B] hover:bg-red-700'}`}>
+                                        {isRecording ? <><Icon name="mic-off" className="w-5 h-5 mr-2" /> Stop</> : <><Icon name="mic" className="w-5 h-5 mr-2" /> Bicara</>}
+                                    </button>
+                                </div>
+                            )}
+
+                            {evalResult && !apiError && (
+                                <div className={`w-full p-6 rounded-2xl border ${evalResult.score >= 70 ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
+                                    <div className="text-4xl mb-4 font-bold">
+                                        {evalResult.score}%
+                                    </div>
+                                    <div className="flex justify-center gap-2 mb-4 font-serif-sc text-3xl">
+                                        {evalResult.chars.map((c, i) => (
+                                            <span key={i} className={c.isMatch ? 'text-green-600' : 'text-orange-500 opacity-50'}>{c.char}</span>
+                                        ))}
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-6">
+                                        Yang terdeteksi: <span className="italic">"{transcript}"</span>
+                                    </p>
+                                    
+                                    {evalResult.score >= 70 ? (
+                                        <button onClick={()=> { setEvalResult(null); setQIdx(i=>(i+1)%speakingCards.length); }} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700">Bagus! Lanjut</button>
+                                    ) : (
+                                        <button onClick={()=> setEvalResult(null)} className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600">Coba Lagi</button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            // ---------------------------------------------------------
+            // 6. WRITING
+            // ---------------------------------------------------------
+            const WritingModule = () => {
+                const canvasRef = useRef(null);
+                const containerRef = useRef(null);
+                const [isDrawing, setIsDrawing] = useState(false);
+                const [qIdx, setQIdx] = useState(0);
+                const [mode, setMode] = useState('tracing');
+                const [canvasSize, setCanvasSize] = useState(300);
+
+                const char = WRITING[qIdx];
+
+                const drawGrid = useCallback((ctx, w, h) => {
+                    ctx.clearRect(0, 0, w, h);
+                    ctx.fillStyle = "#FAFAFA";
+                    ctx.fillRect(0, 0, w, h);
+                    
+                    ctx.strokeStyle = "#ffb3b3";
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h);
+                    ctx.moveTo(0, h/2); ctx.lineTo(w, h/2);
+                    ctx.moveTo(0, 0); ctx.lineTo(w, h);
+                    ctx.moveTo(w, 0); ctx.lineTo(0, h);
+                    ctx.stroke();
+                    
+                    ctx.strokeStyle = "#ff4d4d";
+                    ctx.setLineDash([]);
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(0,0,w,h);
+
+                    if (mode === 'tracing') {
+                        ctx.fillStyle = "rgba(0,0,0,0.08)";
+                        ctx.font = `${w * 0.75}px "Noto Serif SC", serif`;
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(char.h, w/2, h/2 + (h*0.05)); 
+                    }
+                }, [char, mode]);
+
+                useEffect(() => {
+                    const updateSize = () => {
+                        if(containerRef.current) {
+                            const width = Math.min(containerRef.current.offsetWidth - 32, 400);
+                            setCanvasSize(width);
+                        }
+                    };
+                    updateSize();
+                    window.addEventListener('resize', updateSize);
+                    return () => window.removeEventListener('resize', updateSize);
+                }, []);
+
+                useEffect(() => {
+                    if(canvasRef.current) {
+                        const cvs = canvasRef.current;
+                        const ctx = cvs.getContext('2d');
+                        drawGrid(ctx, cvs.width, cvs.height);
+                    }
+                }, [qIdx, mode, canvasSize, drawGrid]);
+
+                const getPos = (e) => {
+                    const rect = canvasRef.current.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    return { x: clientX - rect.left, y: clientY - rect.top };
+                };
+
+                const startDraw = (e) => {
+                    e.preventDefault();
+                    setIsDrawing(true);
+                    const pos = getPos(e);
+                    const ctx = canvasRef.current.getContext('2d');
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                };
+
+                const draw = (e) => {
+                    e.preventDefault();
+                    if (!isDrawing) return;
+                    const pos = getPos(e);
+                    const ctx = canvasRef.current.getContext('2d');
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.strokeStyle = "#1A1A2E"; 
+                    ctx.lineWidth = canvasSize * 0.03;
+                    ctx.lineCap = "round";
+                    ctx.lineJoin = "round";
+                    ctx.stroke();
+                };
+
+                const stopDraw = () => setIsDrawing(false);
+
+                const clearCanvas = () => {
+                    const cvs = canvasRef.current;
+                    drawGrid(cvs.getContext('2d'), cvs.width, cvs.height);
+                };
+
+                const finishDraw = () => {
+                    addXP(10, 'writing');
+                    setQIdx((i) => (i + 1) % WRITING.length);
+                    clearCanvas();
+                };
+
+                return (
+                    <div className="max-w-4xl mx-auto p-4 md:p-8 flex flex-col md:flex-row gap-8 items-start">
+                        <div className="w-full md:w-1/3 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+                            <div>
+                                <h2 className="text-xl font-bold mb-4">Latihan Menulis</h2>
+                                <div className="flex bg-gray-100 rounded-lg p-1 text-sm mb-6">
+                                    <button onClick={()=>setMode('tracing')} className={`flex-1 py-2 rounded-md ${mode==='tracing'?'bg-white shadow text-[#C0392B] font-bold':''}`}>Tracing</button>
+                                    <button onClick={()=>setMode('memory')} className={`flex-1 py-2 rounded-md ${mode==='memory'?'bg-white shadow text-[#C0392B] font-bold':''}`}>Memori</button>
+                                </div>
+                            </div>
+
+                            <div className="text-center bg-[#FAFAFA] p-6 rounded-xl border border-gray-200">
+                                <div className="text-sm text-gray-500 uppercase tracking-widest mb-2">Target</div>
+                                {mode === 'tracing' ? (
+                                    <div className="text-6xl font-serif-sc text-[#1A1A2E] mb-4">{char.h}</div>
+                                ) : (
+                                    <div className="text-6xl font-serif-sc text-gray-300 mb-4 blur-[3px] select-none">?</div>
+                                )}
+                                <div className="text-xl text-blue-600 font-bold mb-1">{char.p}</div>
+                                <div className="text-gray-600">{char.a}</div>
+                            </div>
+                        </div>
+
+                        <div className="w-full md:w-2/3 flex flex-col items-center" ref={containerRef}>
+                            <canvas 
+                                ref={canvasRef}
+                                width={canvasSize}
+                                height={canvasSize}
+                                className="bg-white rounded-lg shadow-md touch-none cursor-crosshair border-4 border-[#FAFAFA]"
+                                onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw}
+                                onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw}
+                            ></canvas>
+                            
+                            <div className="flex gap-4 mt-8 w-full" style={{ maxWidth: canvasSize }}>
+                                <button onClick={clearCanvas} className="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-bold flex justify-center items-center">
+                                    <Icon name="refresh" className="w-5 h-5 mr-2" /> Hapus
+                                </button>
+                                <button onClick={finishDraw} className="flex-1 py-3 bg-[#1A1A2E] hover:bg-black text-white rounded-xl font-bold flex justify-center items-center shadow-lg">
+                                    <Icon name="check" className="w-5 h-5 mr-2" /> Selesai
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            // ---------------------------------------------------------
+            // 7. PENGATURAN & UPLOAD CSV
+            // ---------------------------------------------------------
+            const SettingsModule = () => {
+                const [newName, setNewName] = useState(state.name);
+
+                const handleSave = () => {
+                    updateState({ name: newName });
+                    alert("Pengaturan profil disimpan!");
+                };
+
+                const resetProgress = () => {
+                    if(window.confirm("Yakin ingin menghapus semua progress? Ini tidak bisa dibatalkan.")) {
+                        localStorage.removeItem('hanziState');
+                        window.location.reload();
+                    }
+                };
+
+                const downloadTemplate = () => {
+                    const content = "Hanzi,Pinyin,Tone,Arti,ContohHanzi,ContohArti\n測試,cè shì,4,Ujian/Tes,這是一個測試,Ini adalah sebuah ujian\n朋友,péng yǒu,2,Teman,他是我的朋友,Dia adalah teman saya";
+                    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'template_kosa_kata.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+
+                const handleFileUpload = (e) => {
+                    const file = e.target.files[0];
+                    if(!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        const text = evt.target.result;
+                        const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+                        
+                        const newCards = [];
+                        for(let i = 1; i < lines.length; i++) { // Mulai dari 1 untuk lewati header
+                            const cols = parseCSVLine(lines[i]);
+                            if(cols.length >= 4 && cols[0]) {
+                                newCards.push({
+                                    h: cols[0],
+                                    p: cols[1],
+                                    t: parseInt(cols[2]) || 5, // Default netral
+                                    a: cols[3],
+                                    kh: cols[4] || '',
+                                    ka: cols[5] || ''
+                                });
+                            }
+                        }
+
+                        if(newCards.length > 0) {
+                            const currentVocab = state.customVocab || [];
+                            const updatedVocab = [...currentVocab, ...newCards];
+                            
+                            // Tambahkan index kosa kata baru ke queue agar muncul di flashcard
+                            const baseLen = FLASHCARDS.length + currentVocab.length;
+                            const newIndices = newCards.map((_, i) => baseLen + i);
+                            
+                            updateState({ 
+                                customVocab: updatedVocab,
+                                fcQueue: [...state.fcQueue, ...newIndices]
+                            });
+                            
+                            alert(`Berhasil menambahkan ${newCards.length} kosa kata baru ke Flashcard Anda!`);
+                        } else {
+                            alert("Format CSV tidak valid atau file kosong. Pastikan mengikuti format template.");
+                        }
+                    };
+                    reader.readAsText(file);
+                    e.target.value = ''; // Reset input
+                };
+
+                const clearCustomVocab = () => {
+                    if(window.confirm("Hapus semua kosa kata kustom yang pernah Anda unggah?")) {
+                        // Bersihkan dari queue
+                        const originalLen = FLASHCARDS.length;
+                        const cleanedQueue = state.fcQueue.filter(idx => idx < originalLen);
+                        updateState({ customVocab: [], fcQueue: cleanedQueue });
+                    }
+                };
+
+                return (
+                    <div className="max-w-2xl mx-auto p-4 md:p-8 space-y-8 animate-fade-in">
+                        
+                        {/* Pengaturan Profil */}
+                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+                            <h2 className="text-2xl font-bold text-[#1A1A2E] mb-6 flex items-center">
+                                <Icon name="settings" className="mr-2"/> Pengaturan Profil
+                            </h2>
+                            
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Nama Pengguna</label>
+                                    <input 
+                                        type="text" 
+                                        value={newName} 
+                                        onChange={(e) => setNewName(e.target.value)}
+                                        className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#C0392B]"
+                                    />
+                                </div>
+                                <button onClick={handleSave} className="w-full py-3 bg-[#C0392B] text-white rounded-xl font-bold hover:bg-red-700">Simpan Perubahan</button>
+                            </div>
+                        </div>
+
+                        {/* Manajemen Kosa Kata Kustom */}
+                        <div className="bg-blue-50 p-6 md:p-8 rounded-2xl border border-blue-200">
+                            <h3 className="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                                <Icon name="upload" className="mr-2" /> Kosa Kata Sendiri (CSV)
+                            </h3>
+                            <p className="text-sm text-blue-700 mb-4">Tambahkan Flashcard Anda sendiri dengan mengunggah file CSV. (Jumlah saat ini: <b>{state.customVocab?.length || 0}</b> kata kustom)</p>
+                            
+                            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                                <button onClick={downloadTemplate} className="flex-1 py-3 px-4 bg-white border border-blue-300 text-blue-700 rounded-xl hover:bg-blue-100 font-bold text-sm flex items-center justify-center transition">
+                                    <Icon name="download" className="w-5 h-5 mr-2" /> Download Template
+                                </button>
+                                
+                                <label className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold text-sm flex items-center justify-center cursor-pointer transition shadow-md">
+                                    <Icon name="upload" className="w-5 h-5 mr-2" /> Upload CSV
+                                    <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
+                                </label>
+                            </div>
+
+                            {state.customVocab && state.customVocab.length > 0 && (
+                                <button onClick={clearCustomVocab} className="text-sm text-red-600 hover:text-red-800 flex items-center mt-6 p-2 rounded hover:bg-red-50 transition">
+                                    <Icon name="trash" className="w-4 h-4 mr-1" /> Hapus Semua Kosa Kata Kustom
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Zona Bahaya */}
+                        <div className="bg-red-50 p-6 md:p-8 rounded-2xl border border-red-200">
+                            <h3 className="text-xl font-bold text-red-800 mb-2">Zona Bahaya</h3>
+                            <p className="text-sm text-red-600 mb-4">Menghapus progress akan mereset XP, Level, dan status semua modul kembali ke 0. Ini tidak akan menghapus Kosa Kata Kustom Anda.</p>
+                            <button onClick={resetProgress} className="py-2 px-4 bg-white border border-red-300 text-red-700 rounded-lg hover:bg-red-100 font-bold text-sm">Reset Semua Progress</button>
+                        </div>
+
+                    </div>
+                );
+            };
+
+            // ---------------------------------------------------------
+            // RENDER UTAMA
+            // ---------------------------------------------------------
+            return (
+                <div className="min-h-screen text-gray-900 flex flex-col md:flex-row">
+                    {/* Mobile Nav Header */}
+                    <div className="md:hidden bg-[#1A1A2E] text-white p-4 flex justify-between items-center sticky top-0 z-20 shadow-md">
+                        <div className="font-serif-sc text-xl font-bold text-[#D4AF37]">HànZì Learn 漢字</div>
+                        <button onClick={() => setSidebarOpen(!sidebarOpen)}><Icon name={sidebarOpen ? "x" : "menu"} className="w-6 h-6" /></button>
+                    </div>
+
+                    {/* Sidebar Navigation */}
+                    <div className={`${sidebarOpen ? 'block' : 'hidden'} md:flex w-full md:w-64 bg-[#1A1A2E] text-gray-300 min-h-screen sticky top-0 z-10 flex-shrink-0 flex-col transition-all shadow-xl`}>
+                        <div className="p-6 hidden md:block">
+                            <h1 className="text-2xl font-serif-sc text-[#D4AF37] font-bold tracking-wider">HànZì Learn<br/><span className="text-sm text-white font-sans">漢字學習</span></h1>
+                        </div>
+                        
+                        <nav className="mt-2 md:mt-4 flex-1">
+                            {navItems.map(item => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                                    className={`w-full flex items-center px-6 py-4 text-left transition-colors
+                                        ${activeTab === item.id ? 'bg-[#C0392B] text-white border-r-4 border-[#D4AF37]' : 'hover:bg-gray-800 hover:text-white'}`}
+                                >
+                                    <Icon name={item.icon} className="w-5 h-5 mr-4" />
+                                    <span className="font-medium">{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+
+                        <div className="p-6 border-t border-gray-800 bg-gray-900/50 hidden md:block">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-[#D4AF37] rounded-full flex items-center justify-center text-[#1A1A2E] font-bold text-xl uppercase">
+                                    {state.name.charAt(0)}
+                                </div>
+                                <div>
+                                    <div className="text-white font-bold text-sm">{state.name}</div>
+                                    <div className="text-xs text-gray-400">XP: {state.xp} • Lvl: {getLevel(state.xp).i}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    <div className="flex-1 flex flex-col min-w-0 bg-gray-50/50">
+                        <main className="flex-1 overflow-y-auto relative pb-20 md:pb-0">
+                            {activeTab === 'dashboard' && <Dashboard />}
+                            {activeTab === 'flashcard' && <FlashcardModule />}
+                            {activeTab === 'reading' && <ReadingModule />}
+                            {activeTab === 'listening' && <ListeningModule />}
+                            {activeTab === 'speaking' && <SpeakingModule />}
+                            {activeTab === 'writing' && <WritingModule />}
+                            {activeTab === 'settings' && <SettingsModule />}
+                        </main>
+                    </div>
+                </div>
+            );
         }
 
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('tocflTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-        }
-        if(localStorage.getItem('tocflTheme') === 'dark') document.body.classList.add('dark-mode');
-
-        try {
-            populateCategories(); filterCategory(); renderBank();
-        } catch(e) {
-            console.error("Inisialisasi gagal: ", e);
-        }
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HanziLearnApp />);
     </script>
 </body>
 </html>
